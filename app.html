@@ -1,90 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script>
-/* ============================================================
- * GOOGLE SCRIPT RUN BRIDGE POLYFILL (JSONP - 100% CORS PROOF)
- * ============================================================ */
-(function() {
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCAzNfLln35J4feJDIg9R14j_iY_VwMJnvNWz6iN6dglW9eXcb537F2iozrjaWV3fQ/exec';
-
-  window.google = window.google || {};
-  window.google.script = window.google.script || {};
-
-  let callbackCounter = 0;
-
-  function createGasRunner() {
-    let successFn = function() {};
-    let failureFn = function(err) { console.error("GAS Error:", err); };
-
-    const handler = {
-      get(target, prop) {
-        if (prop === 'withSuccessHandler') {
-          return function(fn) {
-            successFn = fn;
-            return runnerProxy;
-          };
-        }
-        if (prop === 'withFailureHandler') {
-          return function(fn) {
-            failureFn = fn;
-            return runnerProxy;
-          };
-        }
-
-        // Target function call via JSONP Script Injection (Bypasses CORS completely)
-        return function(...args) {
-          const callbackName = '__gas_cb_' + (++callbackCounter) + '_' + Date.now();
-
-          // Global callback handler
-          window[callbackName] = function(data) {
-            delete window[callbackName];
-            if (scriptTag && scriptTag.parentNode) {
-              scriptTag.parentNode.removeChild(scriptTag);
-            }
-
-            if (data.status === "success") {
-              successFn(data.result);
-            } else {
-              console.error("Script Execution Error:", data.message);
-              failureFn(new Error(data.message));
-            }
-          };
-
-          const requestUrl = SCRIPT_URL +
-            '?fn=' + encodeURIComponent(prop) +
-            '&args=' + encodeURIComponent(JSON.stringify(args)) +
-            '&callback=' + encodeURIComponent(callbackName);
-
-          const scriptTag = document.createElement('script');
-          scriptTag.src = requestUrl;
-          scriptTag.onerror = function(err) {
-            delete window[callbackName];
-            if (scriptTag && scriptTag.parentNode) {
-              scriptTag.parentNode.removeChild(scriptTag);
-            }
-            console.error("Script Injection Error:", err);
-            failureFn(new Error("Failed to load script. Check Apps Script permissions (Who has access: Anyone)."));
-          };
-
-          document.body.appendChild(scriptTag);
-        };
-      }
-    };
-
-    const runnerProxy = new Proxy({}, handler);
-    return runnerProxy;
-  }
-
-  window.google.script.run = new Proxy({}, {
-    get(target, prop) {
-      const runner = createGasRunner();
-      return runner[prop];
-    }
-  });
-})();
-</script>
+    
 <base target="_top">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">

@@ -3,7 +3,7 @@
 <head>
     <script>
 /* ============================================================
- * GOOGLE SCRIPT RUN BRIDGE POLYFILL
+ * GOOGLE SCRIPT RUN BRIDGE POLYFILL (FIXED CHAINING & CORS)
  * ============================================================ */
 (function() {
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCAzNfLln35J4feJDIg9R14j_iY_VwMJnvNWz6iN6dglW9eXcb537F2iozrjaWV3fQ/exec';
@@ -11,52 +11,59 @@
   window.google = window.google || {};
   window.google.script = window.google.script || {};
 
-  window.google.script.run = new Proxy({}, {
-    get(target, functionName) {
-      let successHandler = function() {};
-      let failureHandler = function(err) { console.error("GAS Error:", err); };
+  function createGasRunner() {
+    let successFn = function() {};
+    let failureFn = function(err) { console.error("GAS Error:", err); };
 
-      const runner = {
-        withSuccessHandler(fn) {
-          successHandler = fn;
-          return runner;
-        },
-        withFailureHandler(fn) {
-          failureHandler = fn;
-          return runner;
+    const handler = {
+      get(target, prop) {
+        if (prop === 'withSuccessHandler') {
+          return function(fn) {
+            successFn = fn;
+            return runnerProxy;
+          };
         }
-      };
+        if (prop === 'withFailureHandler') {
+          return function(fn) {
+            failureFn = fn;
+            return runnerProxy;
+          };
+        }
 
-      return function(...args) {
-        fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            functionName: functionName,
-            args: args
-          })
-        })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error("Network response was not ok: " + res.statusText);
-          }
-          return res.json();
-        })
-        .then(data => {
-          if (data.status === "success") {
-            successHandler(data.result);
-          } else {
-            console.error("Script Execution Error:", data.message);
-            failureHandler(new Error(data.message));
-          }
-        })
-        .catch(err => {
-          console.error("Fetch Exception:", err);
-          failureHandler(err);
-        });
+        // Target function call (e.g. getItemsMasterForForm, submitHourEntry, etc.)
+        return function(...args) {
+          const requestUrl = SCRIPT_URL + '?fn=' + encodeURIComponent(prop) + '&args=' + encodeURIComponent(JSON.stringify(args));
 
-        return runner;
-      };
+          fetch(requestUrl)
+            .then(res => res.json())
+            .then(data => {
+              if (data.status === "success") {
+                successHandlerProxy(data.result);
+              } else {
+                console.error("Script Execution Error:", data.message);
+                failureFn(new Error(data.message));
+              }
+            })
+            .catch(err => {
+              console.error("Fetch Error:", err);
+              failureFn(err);
+            });
+        };
+
+        function successHandlerProxy(res) {
+          successFn(res);
+        }
+      }
+    };
+
+    const runnerProxy = new Proxy({}, handler);
+    return runnerProxy;
+  }
+
+  window.google.script.run = new Proxy({}, {
+    get(target, prop) {
+      const runner = createGasRunner();
+      return runner[prop];
     }
   });
 })();

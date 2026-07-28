@@ -2,38 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Web App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    <title>4star Production Portal</title>
+    <style>
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            overflow: hidden; 
+            background: #0b2e3d; 
+        }
+        iframe { 
+            width: 100%; 
+            height: 100vh; 
+            border: none; 
+            display: block; 
+        }
+    </style>
 </head>
 <body>
 
-    <h1>Web App Output</h1>
-    <div id="result">Data loading...</div>
+    <!-- Aapka Production Portal Frame -->
+    <iframe src="https://script.google.com/macros/s/AKfycbxCAzNfLln35J4feJDIg9R14j_iY_VwMJnvNWz6iN6dglW9eXcb537F2iozrjaWV3fQ/exec" allow="microphone"></iframe>
 
-    <script>
-        // Page poora load hone ke baad JavaScript chalegi
-        document.addEventListener("DOMContentLoaded", function() {
-            
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbwTy7sN3calaQQGmYvXj3A6kJM93KFImY-ZFJhPUOpcpzMqIEA-Q0wbH4GuqjKaSzwA/exec?api=json';
-
-            fetch(scriptURL)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Data received successfully:", data);
-                    const resultDiv = document.getElementById('result');
-                    if (resultDiv) {
-                        resultDiv.innerText = data.message;
-                    }
-                })
-                .catch(error => {
-                    console.error('Fetch Error:', error);
-                    const resultDiv = document.getElementById('result');
-                    if (resultDiv) {
-                        resultDiv.innerText = 'Failed to load data. Make sure you open this via http/https, not file://';
-                    }
-                });
-                
-        });
-    </script>
 </body>
 </html>

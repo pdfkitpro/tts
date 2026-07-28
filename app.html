@@ -1,16 +1,2705 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Redirecting to 4star Portal...</title>
     <script>
-        // Website open hote hi direct Google Script Portal par le jaye ga (Zero Warning / Zero Refused Error)
-        window.location.href = "https://script.google.com/macros/s/AKfycbxCAzNfLln35J4feJDIg9R14j_iY_VwMJnvNWz6iN6dglW9eXcb537F2iozrjaWV3fQ/exec";
-    </script>
+/* ============================================================
+ * GOOGLE SCRIPT RUN BRIDGE POLYFILL
+ * Allows Google Apps Script functions to run natively on GitHub Pages
+ * ============================================================ */
+(function() {
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCAzNfLln35J4feJDIg9R14j_iY_VwMJnvNWz6iN6dglW9eXcb537F2iozrjaWV3fQ/exec';
+
+  window.google = window.google || {};
+  window.google.script = window.google.script || {};
+
+  window.google.script.run = new Proxy({}, {
+    get(target, functionName) {
+      let successHandler = function() {};
+      let failureHandler = function(err) { console.error("GAS Error:", err); };
+
+      const runner = {
+        withSuccessHandler(fn) {
+          successHandler = fn;
+          return runner;
+        },
+        withFailureHandler(fn) {
+          failureHandler = fn;
+          return runner;
+        }
+      };
+
+      return function(...args) {
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            functionName: functionName,
+            args: args
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "success") {
+            successHandler(data.result);
+          } else {
+            failureHandler(new Error(data.message));
+          }
+        })
+        .catch(err => {
+          failureHandler(err);
+        });
+
+        return runner;
+      };
+    }
+  });
+})();
+</script>
+<base target="_top">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b2e3d">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --ink: #10192b;
+    --ink-soft: #1c2942;
+    --panel: #0b2e3d;
+    --panel-soft: #123a4c;
+    --paper: #f3f5f8;
+    --surface: #ffffff;
+    --line: #e1e6ee;
+    --accent: #0ea5a3;
+    --accent-deep: #0b7a78;
+    --gold: #f2b134;
+    --success: #22a559;
+    --danger: #e5484d;
+    --text: #1c2433;
+    --muted: #6b7280;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    margin: 0; background: var(--paper); color: var(--text);
+    padding-bottom: 88px;
+    font-size: 17px;
+  }
+
+  .stickyTop { position: sticky; top: 0; z-index: 20; }
+  .summaryBar {
+    position: sticky; top: var(--stickyTopHeight, 92px); z-index: 15;
+    background: var(--paper); padding-top: 8px; padding-bottom: 6px;
+  }
+  .header {
+    background: var(--panel); color: white;
+    padding: 20px 18px 16px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    text-align: center;
+  }
+  .header .logo { font-size: 34px; }
+  .header .titleWrap { display: flex; flex-direction: column; align-items: center; }
+  .header .brand { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; }
+  .header .pageTitle { font-family: 'Space Grotesk', sans-serif; font-size: 23px; font-weight: 700; margin-top: 2px; }
+  .hazardStripe {
+    height: 6px;
+    background: repeating-linear-gradient(-45deg, var(--accent), var(--accent) 10px, var(--ink) 10px, var(--ink) 20px);
+  }
+
+  .container { max-width: 620px; margin: 0 auto; }
+  .page { padding: 16px; display: none; }
+  .page.active { display: block; }
+
+  .field { margin-bottom: 16px; }
+  label { display: block; font-weight: 700; color: var(--ink); margin-bottom: 8px; font-size: 15.5px; }
+  select, input[type=date], input[type=text], input[type=password], input[type=number], textarea {
+    width: 100%; padding: 14px 15px; border: 1.5px solid var(--line); border-radius: 10px;
+    font-size: 17px; font-family: inherit; background: var(--surface); color: var(--text);
+    min-height: 50px;
+  }
+  select:focus, input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,165,163,0.15); }
+  textarea { min-height: 70px; resize: vertical; }
+
+  button { font-family: inherit; cursor: pointer; border: none; }
+  button.primary, button.dark, button.green {
+    width: 100%; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 700;
+    letter-spacing: 0.3px; min-height: 54px; transition: transform 0.08s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  button.primary {
+    background: linear-gradient(135deg, #14b8b6, var(--accent-deep));
+    color: white; box-shadow: 0 6px 18px rgba(14,165,163,0.38);
+  }
+  button.dark {
+    background: linear-gradient(135deg, var(--ink-soft), var(--ink));
+    color: white; box-shadow: 0 6px 18px rgba(16,25,43,0.4);
+    border: 1.5px solid rgba(242,177,52,0.35);
+  }
+  button.green {
+    background: linear-gradient(135deg, #2ec278, var(--success));
+    color: white; box-shadow: 0 6px 18px rgba(34,165,89,0.38);
+  }
+  button.primary:hover, button.dark:hover, button.green:hover { filter: brightness(1.06); }
+  button:active { transform: scale(0.97); filter: brightness(0.96); }
+  button:disabled { background: #d8dce3 !important; color: #9aa0ab; box-shadow: none; border-color: transparent; cursor: not-allowed; }
+
+  #statusMsg-savehour, #statusMsg-requests, #statusMsg-reports, #statusMsg-archive, #statusMsg-owner {
+    margin-top: 12px; font-size: 14px; text-align: center; font-weight: 600; min-height: 18px;
+  }
+  /* Message khali ho to upar koi gap na dikhe (ab ye header ke neeche hai) */
+  #statusMsg-savehour:empty, #statusMsg-requests:empty, #statusMsg-reports:empty,
+  #statusMsg-archive:empty, #statusMsg-owner:empty, #statusMsg-purchase:empty, #statusMsg-sale:empty {
+    margin: 0; min-height: 0;
+  }
+  .success { color: var(--success); } .error { color: var(--danger); }
+
+  .summaryBar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .gauge {
+    background: var(--panel-soft); border-radius: 14px; padding: 14px 8px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .gauge::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% -10%, rgba(14,165,163,0.35), transparent 65%);
+  }
+  .gauge .gLabel { display: block; font-size: 13.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); position: relative; font-weight: 700; }
+  .gauge .gValue { display: block; font-family: 'Space Grotesk', monospace; font-size: 29px; font-weight: 700; color: white; margin-top: 6px; position: relative; text-shadow: 0 0 12px rgba(242,177,52,0.35); }
+  .gaugeDivider { height: 1px; background: rgba(255,255,255,0.18); margin: 8px 0 6px; position: relative; }
+  .gSubLabel { display: block; font-size: 10.5px; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(255,255,255,0.65); position: relative; font-weight: 600; }
+  .gSubValue { display: block; font-family: 'Space Grotesk', monospace; font-size: 15px; font-weight: 700; color: var(--gold); margin-top: 2px; position: relative; }
+
+  .itemGroup { background: var(--surface); border-radius: 14px; margin-bottom: 10px; padding: 13px 14px; border: 1px solid var(--line); }
+  .groupHeader { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .groupNameWrap { display: flex; align-items: center; gap: 10px; }
+  .groupName { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--ink); font-size: 19.5px; }
+  .pctBadge { background: #e6f7f6; color: var(--accent-deep); font-size: 14.5px; font-weight: 700; padding: 4px 12px; border-radius: 20px; font-family: 'Space Grotesk', monospace; }
+  .weightBadge { font-family: 'Space Grotesk', monospace; font-weight: 700; font-size: 15.5px; color: var(--ink); background: var(--paper); border: 1.5px solid var(--line); padding: 5px 12px; border-radius: 8px; white-space: nowrap; }
+  .variantWrap { display: flex; flex-wrap: wrap; gap: 8px; }
+  .variantChip {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 10px 9px 14px;
+  }
+  .variantChip .wLabel { font-size: 15.5px; color: var(--muted); white-space: nowrap; font-weight: 700; }
+  input.qtyInputSmall {
+    width: 78px; min-height: 46px; padding: 6px 4px; border: 1.5px solid var(--line); border-radius: 8px;
+    font-size: 18px; text-align: center; font-weight: 700; font-family: 'Space Grotesk', monospace;
+  }
+
+  .presetRow { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .presetBtn {
+    flex: 1; min-width: 78px; padding: 12px 6px; border: 1.5px solid var(--ink); background: var(--surface);
+    color: var(--ink); border-radius: 10px; font-size: 14px; font-weight: 700; min-height: 46px;
+  }
+  .presetBtn.active { background: var(--ink); color: white; border-color: var(--ink); }
+  .checkboxRow { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+  .checkboxRow input { width: 20px; height: 20px; accent-color: var(--accent); }
+  .checkboxRow label { margin: 0; font-weight: 600; font-size: 16px; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+  .card .type { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--ink); font-size: 14.5px; background: #e6f7f6; color: var(--accent-deep); display: inline-block; padding: 3px 10px; border-radius: 8px; margin-bottom: 6px; }
+  .card .detail { font-size: 15.5px; color: var(--text); margin: 5px 0; }
+  .card .detail b { color: var(--muted); font-weight: 600; }
+  .card .actions { display: flex; gap: 10px; margin-top: 10px; }
+  .card .actions button { flex: 1; font-size: 14.5px; padding: 12px; border-radius: 10px; font-weight: 700; min-height: 46px; }
+  .btnApprove { background: var(--success); color: white; }
+  .btnReject { background: var(--danger); color: white; }
+  #ownerGate { text-align: center; padding-top: 30px; max-width: 300px; margin: 0 auto; }
+
+  .navbar {
+    position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel);
+    display: flex; padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.18); z-index: 10;
+  }
+  .navbtn {
+    flex: 1; padding: 11px 2px 9px; text-align: center; font-size: 12.5px; font-weight: 700;
+    color: #9aa4b5; background: none; border-radius: 12px; display: flex; flex-direction: column; gap: 5px; align-items: center;
+  }
+  .navbtn .navIcon { font-size: 23px; }
+  .navbtn.active { color: white; background: rgba(14,165,163,0.22); }
+  .navbtn.active .navIcon { filter: drop-shadow(0 0 6px rgba(14,165,163,0.5)); }
+
+  /* ✅ Report preview table */
+  .reportTable { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .reportTable th { background: #f1f5f9; padding: 8px 6px; text-align: left; font-size: 12.5px; text-transform: uppercase; color: var(--muted); }
+  .reportTable td { padding: 8px 6px; border-top: 1px solid var(--line); text-align: center; }
+  .reportTable td:first-child { text-align: left; font-weight: 600; }
+  .reportFooter { margin-top: 10px; font-weight: 700; font-size: 14.5px; color: var(--ink); }
+
+  @media (min-width: 480px) {
+    .variantChip { padding: 10px 12px 10px 16px; }
+    input.qtyInputSmall { width: 86px; }
+  }
+
+  @media print {
+    .navbar, .stickyTop, .summaryBar, .field, #genReportBtn, .reportActions { display: none !important; }
+    body { padding-bottom: 0; background: white; }
+    .page { display: block !important; padding: 0; }
+  }
+
+  /* ---- VOICE CONTROL ---- */
+  #voiceFab {
+    position: fixed; bottom: calc(72px + env(safe-area-inset-bottom)); right: 16px;
+    width: 52px; height: 52px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--accent); color: white; font-size: 22px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.28); z-index: 20;
+    display: flex; align-items: center; justify-content: center; transition: background .2s;
+  }
+  #voiceFab.listening { background: var(--danger); animation: vPulse 1s infinite; }
+  @keyframes vPulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)} 50%{box-shadow:0 0 0 10px rgba(239,68,68,0)} }
+  #voicePanel {
+    position: fixed; bottom: calc(130px + env(safe-area-inset-bottom)); left: 12px; right: 12px;
+    background: var(--paper); border: 1.5px solid var(--line); border-radius: 16px;
+    padding: 14px 16px; z-index: 20; display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  }
+  #voicePanel.show { display: block; }
+  #voicePrompt { font-weight: 700; font-size: 15px; color: var(--ink); margin-bottom: 6px; }
+  #voiceTranscript { font-size: 13px; color: var(--muted); min-height: 18px; margin-bottom: 8px; font-style: italic; }
+  #voiceConfirm { display: none; background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+  #voiceConfirm .vcLabel { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  #voiceConfirm .vcNum { font-size: 26px; font-weight: 700; color: var(--gold); font-family: 'Space Grotesk', monospace; }
+  #voiceConfirmInput { width: 100%; font-size: 22px; font-weight: 700; color: var(--gold); background: transparent; border: none; border-bottom: 2px solid var(--line); outline: none; margin: 4px 0 10px; font-family: 'Space Grotesk', monospace; }
+  #voiceConfirmBtns { display: flex; gap: 8px; }
+  #voiceConfirmBtns button { flex: 1; padding: 10px; border-radius: 10px; font-weight: 700; font-size: 14px; border: none; cursor: pointer; }
+  #btnVcYes { background: #166534; color: white; }
+  #btnVcNo  { background: var(--surface); color: var(--ink); border: 1.5px solid var(--line) !important; }
+  .vLangBtn { flex:1; padding:8px 4px; border-radius:9px; font-weight:700; font-size:13px; border:1.5px solid var(--line); background:var(--surface); color:var(--ink); cursor:pointer; }
+  .vLangBtn.active { background:var(--ink); color:white; border-color:var(--ink); }
+  @media print { #voiceFab, #voicePanel { display: none !important; } }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-    <p style="text-align:center; font-family:sans-serif; margin-top:50px;">
-        Opening 4star Production Portal...
-    </p>
+
+<div class="stickyTop" id="stickyTop">
+  <div class="header">
+    <span class="logo">🌾</span>
+    <div class="titleWrap">
+      <span class="brand">4star Production</span>
+      <span class="pageTitle" id="pageTitle">Save Hour</span>
+    </div>
+  </div>
+  <div class="hazardStripe"></div>
+</div>
+
+<div class="container">
+
+<!-- SAVE HOUR -->
+<div class="page active" id="page-savehour">
+  <div class="summaryBar">
+    <div class="gauge"><span class="gLabel">Grand Total</span><span class="gValue" id="liveGrandTotal">0</span></div>
+    <div class="gauge"><span class="gLabel">Bori</span><span class="gValue" id="liveBori">0.00</span></div>
+    <div class="gauge">
+      <span class="gLabel">Ratio</span>
+      <span class="gValue" id="liveRatio">0.00</span>
+      <div class="gaugeDivider"></div>
+      <span class="gSubLabel">Sum %</span>
+      <span class="gSubValue" id="livePctSum">0.00</span>
+    </div>
+  </div>
+  <div id="statusMsg-savehour"></div>
+  <div id="itemsContainer">Loading items...</div>
+  <button class="green" onclick="submitHour()" style="margin-top:14px;">💾 Save Hour</button>
+</div>
+
+<!-- REQUESTS (Edit/Delete/Variant) -->
+<div class="page" id="page-requests">
+  <div id="statusMsg-requests"></div>
+  <div class="field">
+    <label>Action Type</label>
+    <select id="actionType" onchange="toggleQtyField()">
+      <option value="EDIT">Edit / Correct Quantity</option>
+      <option value="DELETE">Delete Entire Hour Record</option>
+      <option value="NEW_VARIANT">Request New Item Variant</option>
+      <option value="DELETE_VARIANT">Request Delete Item Variant</option>
+    </select>
+  </div>
+  <div class="field" id="deleteVariantField" style="display:none;">
+    <label>Variant Delete Karni Hai</label>
+    <select id="deleteVariantSelect"><option value="">-- Select Variant --</option></select>
+  </div>
+  <div class="field" id="dateField">
+    <label>Date</label>
+    <input type="date" id="targetDate" onchange="loadHours()">
+  </div>
+  <div class="field" id="hourField">
+    <label>Shift Hour</label>
+    <select id="hourSelect" onchange="loadItems()" disabled><option value="">-- Pehle Date Select Karein --</option></select>
+  </div>
+  <div class="field" id="itemFieldWrap" style="display:none;">
+    <label>Item</label>
+    <select id="itemSelect" onchange="showQtyIfEdit()"><option value="">-- Pehle Hour Select Karein --</option></select>
+  </div>
+  <div class="field" id="qtyField" style="display:none;">
+    <label>Nayi Quantity</label>
+    <input type="number" id="newQty" min="0">
+  </div>
+  <div class="field" id="variantItemField" style="display:none;">
+    <label>Item</label>
+    <select id="variantItemSelect"><option value="">-- Select Item --</option></select>
+  </div>
+  <div class="field" id="variantWeightField" style="display:none;">
+    <label>Naya Weight (kg)</label>
+    <input type="number" id="variantWeight" min="1">
+  </div>
+  <div class="field" id="reasonField">
+    <label>Reason</label>
+    <textarea id="reason" rows="2"></textarea>
+  </div>
+  <button class="primary" id="submitBtn" onclick="submitAction()" disabled>📤 Submit Request</button>
+</div>
+
+<!-- REPORTS -->
+<div class="page" id="page-reports">
+  <div id="statusMsg-reports"></div>
+  <div class="field">
+    <label>Period Select Karein</label>
+    <div class="presetRow">
+      <button class="presetBtn" data-period="HOURLY" onclick="selectPreset('HOURLY')">⏱ Hourly</button>
+      <button class="presetBtn active" data-period="TODAY" onclick="selectPreset('TODAY')">Today</button>
+      <button class="presetBtn" data-period="WEEK" onclick="selectPreset('WEEK')">Week</button>
+      <button class="presetBtn" data-period="MONTH" onclick="selectPreset('MONTH')">Month</button>
+      <button class="presetBtn" data-period="YEAR" onclick="selectPreset('YEAR')">Year</button>
+      <button class="presetBtn" data-period="CUSTOM" onclick="selectPreset('CUSTOM')">Custom</button>
+    </div>
+  </div>
+  <div class="field" id="customFields" style="display:none;">
+    <label>From Date</label><input type="date" id="fromDate" onchange="refreshReportPreview()">
+    <label style="margin-top:10px;">To Date</label><input type="date" id="toDate" onchange="refreshReportPreview()">
+  </div>
+  <div class="field" id="hourlyFields" style="display:none;">
+    <label>Date</label>
+    <input type="date" id="hourlyDate" onchange="loadHourlyDropdown()">
+    <label style="margin-top:10px;">Hour</label>
+    <select id="hourlyHourSelect" onchange="refreshReportPreview()"><option value="">-- Pehle Date Select Karein --</option></select>
+  </div>
+  <div class="field checkboxRow" id="includeHourlyRow">
+    <input type="checkbox" id="includeHourly">
+    <label>Hourly Breakdown Shamil Karein</label>
+  </div>
+  <button class="dark" id="genReportBtn" onclick="generateReportAction()">📊 Generate Report</button>
+
+  <div id="reportPreview" style="display:none; margin-top:16px;">
+    <div class="itemGroup" id="previewContent"></div>
+    <div class="reportActions" style="display:flex; gap:8px; margin-top:10px;">
+      <button class="primary" style="flex:1;" onclick="printReport()">🖨️ Print</button>
+      <button class="green" style="flex:1;" onclick="shareReport()">📤 WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHIVE -->
+<div class="page" id="page-archive">
+  <div id="statusMsg-archive"></div>
+  <div class="field">
+    <label>Date</label>
+    <input type="date" id="archiveDate">
+  </div>
+  <div class="field checkboxRow">
+    <input type="checkbox" id="archiveIncludeHourly">
+    <label>Hourly Breakdown Shamil Karein</label>
+  </div>
+  <button class="dark" id="genArchiveBtn" onclick="generateArchiveAction()">🗓️ Generate Daily Archive</button>
+  <div style="font-size:12.5px; color:var(--muted); margin-top:8px;">Agar is date ka archive pehle se ban chuka ho, ye override kar dega.</div>
+</div>
+
+<!-- OWNER -->
+<div class="page" id="page-owner">
+  <div id="statusMsg-owner"></div>
+  <div id="ownerGate">
+    <div class="field">
+      <label>Owner PIN</label>
+      <input type="password" id="ownerPin" maxlength="8">
+    </div>
+    <button class="dark" onclick="verifyOwner()">🔓 Login</button>
+  </div>
+  <div id="ownerContent" style="display:none;">
+    <div style="background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px;margin-bottom:16px;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:var(--ink);margin-bottom:10px;">🧾 Playdari — Fixed Daily Wage</div>
+      <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Agar din ka bill is amount se kam bane to "Kami" ke naam se difference add ho kar total pura ho jayega. 0 = band.</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div class="field" style="flex:1;margin-bottom:0;">
+          <label>Fixed Wage (Rs)</label>
+          <input type="number" id="ownerFixedWage" min="0" placeholder="e.g. 5000">
+        </div>
+        <button class="green" id="btnSaveFixedWage" onclick="saveFixedWage()" style="width:auto;padding:14px 18px;">💾 Save</button>
+      </div>
+      <div id="fixedWageMsg" style="font-size:13px;font-weight:600;margin-top:8px;text-align:center;"></div>
+    </div>
+    <div id="requestsList">Loading requests...</div>
+  </div>
+</div>
+
+<!-- ===== PURCHASE (Wheat) ===== -->
+<div class="page" id="page-purchase">
+  <div id="statusMsg-purchase" style="margin-top:10px; text-align:center;"></div>
+  <div class="field">
+    <label>Supplier Name</label>
+    <input type="text" id="purchaseSupplier" placeholder="Supplier ka naam" list="supplierList" autocomplete="off">
+    <datalist id="supplierList"></datalist>
+  </div>
+  <div class="field">
+    <label>Bags</label>
+    <input type="number" id="purchaseBags" placeholder="Total bags" min="1" oninput="calcKaatPreview()">
+  </div>
+  <div class="field">
+    <label>Kgs (Total Weight)</label>
+    <input type="number" id="purchaseKgs" placeholder="Total weight in Kg" min="1" oninput="calcKaatPreview()">
+  </div>
+  <div class="field checkboxRow">
+    <input type="checkbox" id="purchaseUnload" checked>
+    <label>🔽 Unload (Labour)</label>
+  </div>
+
+  <div id="kaatPreview" style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:12px 14px; margin:10px 0 16px; display:none;">
+    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+      <span><b>Kaat:</b> <span id="prevKaat">—</span> Kg</span>
+      <span><b>Per Bag:</b> <span id="prevPerBag">—</span> Kg</span>
+    </div>
+    <div style="font-size:17px; font-weight:bold; color:#166534;">
+      Net Weight: <span id="prevNetWeight">—</span> Kg
+    </div>
+  </div>
+
+  <button class="primary" id="btnSubmitPurchase" onclick="submitPurchase()">🌾 Save Purchase</button>
+
+  <div style="margin-top:24px;">
+    <h3 style="margin-bottom:10px; font-size:15px; color:#475569;">Today's Purchases</h3>
+    <div id="purchaseHistory" style="font-size:14px;">Loading...</div>
+  </div>
+</div>
+
+<!-- ===== SALE (Dispatch) ===== -->
+<div class="page" id="page-sale">
+  <div id="statusMsg-sale" style="margin-top:10px; text-align:center;"></div>
+
+  <!-- STEP 1: Sale Type + Customer -->
+  <div id="saleStep1">
+    <div class="field">
+      <label>Sale Type</label>
+      <select id="saleType" onchange="filterCustomersBySaleType()">
+        <option value="Cash">💵 Cash Sale</option>
+        <option value="Credit">📋 Credit Sale</option>
+        <option value="Kpk">🚛 Kpk</option>
+        <option value="Bran">🌾 Bran</option>
+      </select>
+    </div>
+    <div class="field" id="saleCustomerField">
+      <label>Customer</label>
+      <select id="saleCustomer" onchange="onSaleCustomerChange()">
+        <option value="">Loading...</option>
+      </select>
+      <div id="saleCustInfo" style="font-size:13px;color:var(--muted);margin-top:6px;font-weight:600;"></div>
+    </div>
+    <div class="field">
+      <label>Notes (Optional)</label>
+      <input type="text" id="saleNotes" placeholder="Koi note...">
+    </div>
+  </div>
+
+  <!-- STEP 2: Item Picker -->
+  <div id="saleStep2" style="display:none;">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px;" id="saleCartSummary"></div>
+
+    <!-- Item list -->
+    <div id="saleItemList" style="display:block;"></div>
+
+    <!-- Variant picker (shown after item tap) -->
+    <div id="saleVariantPicker" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <button onclick="backToItems()" style="background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:10px 16px;font-size:15px;font-weight:700;">← Back</button>
+        <span id="salePickerItemName" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;"></span>
+      </div>
+      <div id="saleVariantList"></div>
+    </div>
+
+    <!-- Qty input (shown after variant tap) -->
+    <div id="saleQtyPanel" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <button onclick="backToVariants()" style="background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:10px 16px;font-size:15px;font-weight:700;">← Back</button>
+        <span id="saleQtyLabel" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;"></span>
+      </div>
+      <div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:12px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:14px;color:var(--muted);font-weight:600;" id="saleQtyStockInfo"></div>
+      </div>
+      <div class="field">
+        <label>Bags (Qty)</label>
+        <input type="number" id="saleQtyInput" min="1" placeholder="0" style="font-size:26px;font-weight:700;text-align:center;" oninput="updateQtyPreview()">
+      </div>
+      <div id="saleQtyPreview" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-weight:700;font-size:15px;"></div>
+      <button class="green" onclick="addToCart()">✅ Done — Cart Mein Add Karein</button>
+    </div>
+
+    <!-- Cart + Submit -->
+    <div id="saleCartPanel" style="margin-top:16px;display:none;">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px;">🛒 Cart</div>
+      <div id="saleCartItems"></div>
+      <button class="primary" style="margin-top:6px;" onclick="goToItemPicker2()">➕ Aur Item Add Karein</button>
+      <button class="green" style="margin-top:10px;" id="btnSubmitSale" onclick="submitSaleEntry()">🚚 Sale Submit Karein</button>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;" id="saleHistoryWrap">
+    <h3 style="margin-bottom:10px;font-size:15px;color:#475569;">Today's Sales</h3>
+    <div id="saleHistory" style="font-size:14px;">Loading...</div>
+  </div>
+</div>
+
+<!-- ===== PLAYDARI (Labour) BILL ===== -->
+<div class="page" id="page-playdari">
+  <div id="statusMsg-playdari" style="margin-top:10px;text-align:center;"></div>
+
+  <!-- Date range -->
+  <div class="field">
+    <div class="presetRow">
+      <button class="presetBtn active" data-pperiod="TODAY" onclick="selectPlaydariPeriod('TODAY')">Today</button>
+      <button class="presetBtn" data-pperiod="CUSTOM" onclick="selectPlaydariPeriod('CUSTOM')">Custom</button>
+    </div>
+  </div>
+  <div class="field" id="playdariCustomFields" style="display:none;">
+    <label>From Date</label><input type="date" id="playdariFrom">
+    <label style="margin-top:10px;">To Date</label><input type="date" id="playdariTo">
+    <button class="dark" onclick="loadPlaydariBill()" style="margin-top:12px;width:100%;">📊 Get Bill</button>
+  </div>
+
+  <!-- Manual add toggle -->
+  <button class="dark" onclick="togglePlaydariManualForm()" style="margin-bottom:14px;">➕ Manual Entry Add Karein</button>
+
+  <div id="playdariManualForm" style="display:none;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px;margin-bottom:16px;">
+    <div class="field">
+      <label>Type</label>
+      <select id="playdariKind" onchange="onPlaydariKindChange()">
+        <option value="Jaam Maal">Jaam Maal (party nahi)</option>
+        <option value="Thapai">Thapai (party nahi)</option>
+        <option value="Gandam Bharai">Gandam Bharai (bikhri gandam)</option>
+        <option value="Bardana">Bardana (khali bags)</option>
+      </select>
+    </div>
+    <div class="field" id="playdariPartyField" style="display:none;">
+      <label>Party</label>
+      <select id="playdariParty"><option value="Mills">Mills</option></select>
+    </div>
+    <div class="field" id="playdariWeightField" style="display:none;">
+      <label>Weight (kg)</label>
+      <input type="number" id="playdariWeight" min="1" placeholder="e.g. 50" oninput="onPlaydariWeightChange()">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="field" style="flex:1;">
+        <label>Qty</label>
+        <input type="number" id="playdariQty" min="1" placeholder="0" oninput="calcPlaydariManualPreview()">
+      </div>
+      <div class="field" style="flex:1;">
+        <label>Rate</label>
+        <input type="number" id="playdariRate" min="1" placeholder="0" oninput="calcPlaydariManualPreview()">
+      </div>
+    </div>
+    <div id="playdariManualPreview" style="text-align:center;font-weight:700;color:#166534;margin-bottom:10px;"></div>
+    <button class="green" id="btnAddPlaydariManual" onclick="submitPlaydariManual()">✅ Save Entry</button>
+  </div>
+
+  <div id="playdariBill" style="font-size:14px;">Loading...</div>
+
+  <div id="playdariActions" style="display:none; gap:8px; margin-top:14px;">
+    <button class="primary" style="flex:1;" onclick="printPlaydariBill()">🖨️ Print</button>
+    <button class="green" style="flex:1;" onclick="sharePlaydariBill()">📤 WhatsApp</button>
+  </div>
+</div>
+
+
+</div><!-- /container -->
+
+<div class="navbar">
+  <button class="navbtn active" data-page="savehour" onclick="showPage('savehour','Save Hour')"><span class="navIcon">💾</span>Save</button>
+  <button class="navbtn" data-page="requests" onclick="showPage('requests','Requests')"><span class="navIcon">📝</span>Requests</button>
+  <button class="navbtn" data-page="purchase" onclick="showPage('purchase','Wheat Purchase')"><span class="navIcon">🌾</span>Purchase</button>
+  <button class="navbtn" data-page="sale" onclick="showPage('sale','Sale / Dispatch')"><span class="navIcon">🚚</span>Sale</button>
+  <button class="navbtn" data-page="playdari" onclick="showPage('playdari','Playdari Bill')"><span class="navIcon">🧾</span>Playdari</button>
+  <button class="navbtn" data-page="reports" onclick="showPage('reports','Reports')"><span class="navIcon">📊</span>Reports</button>
+  <button class="navbtn" data-page="archive" onclick="showPage('archive','Daily Archive')"><span class="navIcon">🗓️</span>Archive</button>
+  <button class="navbtn" data-page="owner" onclick="showPage('owner','Owner Dashboard')"><span class="navIcon">🔐</span>Owner</button>
+</div>
+
+<!-- VOICE CONTROL UI -->
+<button id="voiceFab" onclick="toggleVoice()" title="Voice Control" style="display:none;">🎤</button>
+<div id="voicePanel">
+  <div id="voiceLangRow" style="display:flex; gap:6px; margin-bottom:10px;">
+    <button class="vLangBtn" data-lang="en-US" onclick="setVoiceLang('en-US')">🇬🇧 English</button>
+    <button class="vLangBtn active" data-lang="ur-PK" onclick="setVoiceLang('ur-PK')">🇵🇰 Urdu</button>
+    <button class="vLangBtn" data-lang="pa-Guru-IN" onclick="setVoiceLang('pa-Guru-IN')">🪯 Punjabi</button>
+  </div>
+  <div id="voicePrompt">🎤 Bol kar operate karein</div>
+  <div id="voiceTranscript"></div>
+  <div id="voiceConfirm">
+    <div class="vcLabel">Quantity confirm karein:</div>
+    <input type="number" id="voiceConfirmInput" min="0">
+    <div id="voiceConfirmBtns">
+      <button id="btnVcYes" onclick="vcConfirmYes()">✅ Theek Hai</button>
+      <button id="btnVcNo"  onclick="vcConfirmNo()">❌ Nahi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var cachedReportFile = null;
+  var cachedReportTitle = "";
+  var cachedReportBlob = null;
+  // ---------- NAVIGATION ----------
+  function updateStickyOffsets() {
+    var topEl = document.getElementById('stickyTop');
+    if (topEl) {
+      document.documentElement.style.setProperty('--stickyTopHeight', topEl.offsetHeight + 'px');
+    }
+  }
+  window.addEventListener('load', updateStickyOffsets);
+  window.addEventListener('resize', updateStickyOffsets);
+
+  function showPage(id, title) {
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.navbtn').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('page-' + id).classList.add('active');
+    document.querySelector('.navbtn[data-page="' + id + '"]').classList.add('active');
+    document.getElementById('pageTitle').innerText = title;
+    if (id === 'requests' && !document.getElementById('targetDate').value) initRequestsTab();
+    if (id === 'archive' && !document.getElementById('archiveDate').value) initArchiveTab();
+    if (id === 'reports') refreshReportPreview();
+    if (id === 'purchase') initPurchaseTab();
+    if (id === 'sale') initSaleTab();
+    if (id === 'playdari') initPlaydariTab();
+  }
+
+  // ---------- SAVE HOUR ----------
+  window.onload = function() { loadSaveHourItems(); };
+
+  function loadSaveHourItems() {
+    updateStickyOffsets();
+    google.script.run
+      .withSuccessHandler(function(items) {
+        var container = document.getElementById('itemsContainer');
+        container.innerHTML = '';
+        window.itemCount = items.length;
+
+        var groupOrder = [];
+        var groups = {};
+        items.forEach(function(it, idx) {
+          if (!groups[it.item]) { groups[it.item] = []; groupOrder.push(it.item); }
+          groups[it.item].push({ idx: idx, weight: it.weight });
+        });
+
+        groupOrder.forEach(function(itemName) {
+          var groupDiv = document.createElement('div');
+          groupDiv.className = 'itemGroup';
+
+          var header = document.createElement('div');
+          header.className = 'groupHeader';
+          header.innerHTML =
+            '<div class="groupNameWrap"><span class="groupName">' + itemName + '</span><span class="pctBadge" id="pct_' + itemName + '">0.00%</span></div>' +
+            '<span class="weightBadge" id="wt_' + itemName + '">0 kg</span>';
+          groupDiv.appendChild(header);
+
+          var wrap = document.createElement('div');
+          wrap.className = 'variantWrap';
+
+          groups[itemName].forEach(function(v) {
+            var chip = document.createElement('div');
+            chip.className = 'variantChip';
+            chip.innerHTML = '<span class="wLabel">' + v.weight + 'kg</span>' +
+              '<input type="number" min="0" class="qtyInputSmall" id="qty_' + v.idx + '" data-item="' + itemName + '" data-weight="' + v.weight + '" placeholder="0" oninput="onQtyChange()">';
+            wrap.appendChild(chip);
+          });
+
+          groupDiv.appendChild(wrap);
+          container.appendChild(groupDiv);
+        });
+
+        onQtyChange();
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('itemsContainer').innerHTML = '❌ Error: ' + err.message;
+      })
+      .getItemsMasterForForm();
+  }
+
+  function onQtyChange() {
+    var groups = {};
+    var grandTotal = 0;
+
+    for (var i = 0; i < window.itemCount; i++) {
+      var el = document.getElementById('qty_' + i);
+      if (!el) continue;
+      var qty = Number(el.value) || 0;
+      var weight = Number(el.dataset.weight);
+      var item = el.dataset.item;
+      var net = qty * weight;
+      groups[item] = (groups[item] || 0) + net;
+      grandTotal += net;
+    }
+
+    var percentages = {};
+    Object.keys(groups).forEach(function(item) {
+      var raw = groups[item];
+      var pct = grandTotal > 0 ? (raw / grandTotal * 100) : 0;
+      percentages[item] = pct;
+      var badge = document.getElementById('pct_' + item);
+      if (badge) badge.innerText = pct.toFixed(2) + '%';
+      var wtBadge = document.getElementById('wt_' + item);
+      if (wtBadge) wtBadge.innerText = raw.toLocaleString() + ' kg';
+    });
+
+    var bori = grandTotal / 100;
+    var pctMaida = percentages['Maida'] || 0;
+    var pctFine = percentages['Fine'] || 0;
+    var pctBran = percentages['Bran'] || 0;
+    // Super ka (w/4)*3 sirf ratio ke liye — display % real weight se
+    var superForRatio = grandTotal > 0 ? ((groups['Super'] || 0) / grandTotal * 100) * (3/4) : 0;
+    var ratio = pctBran > 0 ? (superForRatio + pctMaida + pctFine) / pctBran : 0;
+    var pctSumLive = Object.keys(percentages).reduce(function(s, k) { return s + percentages[k]; }, 0);
+
+    document.getElementById('liveGrandTotal').innerText = grandTotal.toLocaleString();
+    document.getElementById('liveBori').innerText = bori.toFixed(2);
+    document.getElementById('liveRatio').innerText = ratio.toFixed(2);
+    document.getElementById('livePctSum').innerText = pctSumLive.toFixed(2);
+  }
+
+  function submitHour() {
+    var entries = [];
+    for (var i = 0; i < window.itemCount; i++) {
+      var el = document.getElementById('qty_' + i);
+      var qty = el.value;
+      if (qty && Number(qty) > 0) {
+        entries.push({ item: el.dataset.item, weight: el.dataset.weight, qty: qty });
+      }
+    }
+    if (entries.length === 0) {
+      document.getElementById('statusMsg-savehour').innerHTML = '❌ Koi Quantity nahi bhari.';
+      return;
+    }
+    document.getElementById('statusMsg-savehour').innerHTML = 'Saving...';
+    google.script.run
+      .withSuccessHandler(function(res) {
+        var msg = document.getElementById('statusMsg-savehour');
+        msg.className = res.success ? 'success' : 'error';
+        msg.innerHTML = (res.success ? '✅ ' : '❌ ') + res.message;
+        if (res.success) loadSaveHourItems();
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('statusMsg-savehour').innerHTML = '❌ Error: ' + err.message;
+      })
+      .submitHourEntry(entries);
+  }
+
+  // ---------- REQUESTS (Edit/Delete/Variant) ----------
+  function initRequestsTab() {
+    var today = new Date();
+    document.getElementById('targetDate').value = today.toISOString().split('T')[0];
+    loadHours();
+  }
+
+  function toggleQtyField() {
+    var type = document.getElementById('actionType').value;
+    document.getElementById('itemSelect').value = '';
+    document.getElementById('newQty').value = '';
+    document.getElementById('statusMsg-requests').innerHTML = '';
+    var showDateHour = (type === 'EDIT' || type === 'DELETE');
+    document.getElementById('dateField').style.display = showDateHour ? 'block' : 'none';
+    document.getElementById('hourField').style.display = showDateHour ? 'block' : 'none';
+    document.getElementById('itemFieldWrap').style.display = 'none';
+    document.getElementById('qtyField').style.display = 'none';
+    document.getElementById('variantItemField').style.display = 'none';
+    document.getElementById('variantWeightField').style.display = 'none';
+    document.getElementById('deleteVariantField').style.display = 'none';
+
+    if (type === 'NEW_VARIANT') {
+      document.getElementById('variantItemField').style.display = 'block';
+      document.getElementById('variantWeightField').style.display = 'block';
+      document.getElementById('submitBtn').disabled = false;
+      loadItemNamesForVariant();
+    } else if (type === 'DELETE_VARIANT') {
+      document.getElementById('deleteVariantField').style.display = 'block';
+      document.getElementById('submitBtn').disabled = false;
+      loadVariantsForDeletion();
+    } else {
+      document.getElementById('submitBtn').disabled = true;
+      loadHours();
+    }
+  }
+
+  function loadVariantsForDeletion() {
+    google.script.run.withSuccessHandler(function(list) {
+      var sel = document.getElementById('deleteVariantSelect');
+      sel.innerHTML = '<option value="">-- Select Variant --</option>' +
+        list.map(function(v){ return '<option value="'+v.item+'|'+v.weight+'">'+v.item+' '+v.weight+'kg</option>'; }).join('');
+    }).getActiveVariantsForDeletion();
+  }
+
+  function loadItemNamesForVariant() {
+    google.script.run.withSuccessHandler(function(names) {
+      var sel = document.getElementById('variantItemSelect');
+      sel.innerHTML = '<option value="">-- Select Item --</option>' +
+        names.map(function(n){ return '<option value="'+n+'">'+n+'</option>'; }).join('');
+    }).getDistinctItemNames();
+  }
+
+  function loadHours() {
+    var date = document.getElementById('targetDate').value;
+    var hourSel = document.getElementById('hourSelect');
+    hourSel.innerHTML = '<option value="">Loading...</option>';
+    hourSel.disabled = true;
+    document.getElementById('itemFieldWrap').style.display = 'none';
+    document.getElementById('qtyField').style.display = 'none';
+    document.getElementById('submitBtn').disabled = true;
+
+    google.script.run.withSuccessHandler(function(hours) {
+      if (!hours || hours.length === 0) {
+        hourSel.innerHTML = '<option value="">Is date ka koi record nahi</option>';
+        return;
+      }
+      hourSel.innerHTML = '<option value="">-- Select Hour --</option>' +
+        hours.map(function(h){ return '<option value="'+h+'">Shift Hour '+h+'</option>'; }).join('');
+      hourSel.disabled = false;
+    }).getHoursForDate(date);
+  }
+
+  function loadItems() {
+    var date = document.getElementById('targetDate').value;
+    var hour = document.getElementById('hourSelect').value;
+    var itemWrap = document.getElementById('itemFieldWrap');
+    var itemSel = document.getElementById('itemSelect');
+    var type = document.getElementById('actionType').value;
+    if (!hour) { itemWrap.style.display = 'none'; return; }
+
+    if (type === 'DELETE') {
+      itemWrap.style.display = 'none';
+      document.getElementById('qtyField').style.display = 'none';
+      document.getElementById('submitBtn').disabled = false;
+      return;
+    }
+    itemSel.innerHTML = '<option value="">Loading...</option>';
+    itemWrap.style.display = 'block';
+    google.script.run.withSuccessHandler(function(items) {
+      itemSel.innerHTML = '<option value="">-- Select Item --</option>' +
+        items.map(function(it){ return '<option value="'+it.index+'">'+it.label+'</option>'; }).join('');
+    }).getItemsForDateHourDialog(date, hour);
+  }
+
+  function showQtyIfEdit() {
+    var itemVal = document.getElementById('itemSelect').value;
+    var qtyField = document.getElementById('qtyField');
+    if (itemVal === '') { qtyField.style.display = 'none'; document.getElementById('submitBtn').disabled = true; return; }
+    qtyField.style.display = 'block';
+    document.getElementById('submitBtn').disabled = false;
+  }
+
+  function submitAction() {
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    document.getElementById('statusMsg-requests').innerHTML = 'Processing...';
+    var payload = {
+      type: document.getElementById('actionType').value,
+      date: document.getElementById('targetDate').value,
+      hour: document.getElementById('hourSelect').value,
+      itemIndex: document.getElementById('itemSelect') ? document.getElementById('itemSelect').value : '',
+      newQty: document.getElementById('newQty').value,
+      reason: document.getElementById('reason').value,
+      variantItem: document.getElementById('variantItemSelect').value,
+      variantWeight: document.getElementById('variantWeight').value,
+      deleteVariant: document.getElementById('deleteVariantSelect').value
+    };
+    google.script.run
+      .withSuccessHandler(function(res) {
+        var msg = document.getElementById('statusMsg-requests');
+        msg.className = res.success ? 'success' : 'error';
+        msg.innerHTML = (res.success ? '✅ ' : '❌ ') + res.message;
+        btn.disabled = false;
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('statusMsg-requests').innerHTML = '❌ Error: ' + err.message;
+        btn.disabled = false;
+      })
+      .submitEditDeleteAction(payload);
+  }
+
+  // ---------- REPORTS ----------
+  var selectedPeriod = 'TODAY';
+
+  function selectPreset(p) {
+    selectedPeriod = p;
+    document.querySelectorAll('#page-reports .presetBtn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.period === p);
+    });
+    document.getElementById('customFields').style.display = (p === 'CUSTOM') ? 'block' : 'none';
+    document.getElementById('hourlyFields').style.display = (p === 'HOURLY') ? 'block' : 'none';
+    document.getElementById('includeHourlyRow').style.display = (p === 'HOURLY') ? 'none' : 'flex';
+
+    if (p === 'HOURLY') {
+      if (!document.getElementById('hourlyDate').value) {
+        var today = new Date();
+        document.getElementById('hourlyDate').value = today.toISOString().split('T')[0];
+      }
+      loadHourlyDropdown();
+    } else if (p === 'CUSTOM') {
+      document.getElementById('reportPreview').style.display = 'none';
+    } else {
+      refreshReportPreview();
+    }
+  }
+
+  function loadHourlyDropdown() {
+    var date = document.getElementById('hourlyDate').value;
+    var sel = document.getElementById('hourlyHourSelect');
+    sel.innerHTML = '<option value="">Loading...</option>';
+    google.script.run.withSuccessHandler(function(hours) {
+      if (!hours || hours.length === 0) {
+        sel.innerHTML = '<option value="">Is date ka koi record nahi</option>';
+        document.getElementById('reportPreview').style.display = 'none';
+        return;
+      }
+      sel.innerHTML = '<option value="">-- Select Hour --</option>' +
+        hours.map(function(h){ return '<option value="'+h+'">Shift Hour '+h+'</option>'; }).join('');
+      sel.value = hours[hours.length - 1]; // ✅ latest hour auto-select
+      refreshReportPreview();
+    }).getHoursForDate(date);
+  }
+
+  function buildReportPayload() {
+    var payload = {
+      period: selectedPeriod,
+      fromDate: document.getElementById('fromDate').value,
+      toDate: document.getElementById('toDate').value
+    };
+    if (selectedPeriod === 'CUSTOM' && (!payload.fromDate || !payload.toDate)) return null;
+    if (selectedPeriod === 'HOURLY') {
+      var hDate = document.getElementById('hourlyDate').value;
+      var hHour = document.getElementById('hourlyHourSelect').value;
+      if (!hDate || !hHour) return null;
+      payload.fromDate = hDate;
+      payload.hour = hHour;
+    }
+    return payload;
+  }
+
+  function refreshReportPreview() {
+    var payload = buildReportPayload();
+    if (!payload) { document.getElementById('reportPreview').style.display = 'none'; return; }
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (!res.success) { document.getElementById('reportPreview').style.display = 'none'; return; }
+        renderReportPreview(res);
+      })
+      .withFailureHandler(function() {
+        document.getElementById('reportPreview').style.display = 'none';
+      })
+      .getReportPreviewData(payload);
+  }
+
+  function renderReportPreview(res) {
+    window.currentReportData = res;
+    var html = '';
+    html += '<div class="summaryBar" style="position:static;">';
+    html += '<div class="gauge"><span class="gLabel">Grand Total</span><span class="gValue">' + res.grandTotal + '</span></div>';
+    html += '<div class="gauge"><span class="gLabel">Bori</span><span class="gValue">' + res.bori + '</span></div>';
+    html += '<div class="gauge"><span class="gLabel">Ratio</span><span class="gValue">' + res.ratio + '</span></div>';
+    html += '<div class="gauge"><span class="gLabel">Sum %</span><span class="gValue">' + res.pctSum + '</span></div>';
+    html += '</div>';
+    html += '<h3 style="margin:10px 0; font-family:\'Space Grotesk\',sans-serif; font-size:18px; color:var(--ink);">' + res.title + '</h3>';
+
+    var grouped = {};
+    res.rows.forEach(function(r) {
+      if (!grouped[r.item]) grouped[r.item] = { rows: [], itemWeight: r.itemWeight || '', pct: r.pct || '' };
+      grouped[r.item].rows.push(r);
+      if (r.itemWeight) grouped[r.item].itemWeight = r.itemWeight;
+      if (r.pct) grouped[r.item].pct = r.pct;
+    });
+
+    Object.keys(grouped).forEach(function(item) {
+      var g = grouped[item];
+      html += '<div class="itemGroup">';
+      html += '<div class="groupHeader"><div class="groupNameWrap"><span class="groupName">' + item + '</span>';
+      if (g.pct) html += '<span class="pctBadge">' + g.pct + '%</span>';
+      html += '</div>';
+      if (g.itemWeight) html += '<span class="weightBadge">' + g.itemWeight + ' kg</span>';
+      html += '</div>';
+      html += '<div class="variantWrap">';
+      g.rows.forEach(function(r) {
+        html += '<div class="variantChip"><span class="wLabel">' + r.weight + 'kg</span>';
+        html += '<span style="font-family:\'Space Grotesk\',monospace; font-weight:700; font-size:17px; color:var(--ink);">' + r.qty + '</span></div>';
+      });
+      html += '</div></div>';
+    });
+
+    document.getElementById('previewContent').innerHTML = html;
+    document.getElementById('reportPreview').style.display = 'block';
+    document.getElementById('previewContent').innerHTML = html;
+    document.getElementById('reportPreview').style.display = 'block';
+
+    // Create share image in background
+    setTimeout(function () {
+        createShareImage();
+    }, 100);
+  }
+
+  function printReport() {
+    if (!window.currentReportData) return;
+    var res = window.currentReportData;
+    var w = window.open('', '_blank');
+    var printHTML = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + res.title + '</title>';
+    printHTML += '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">';
+    printHTML += '<style>';
+    printHTML += ':root { --ink: #10192b; --panel: #0b2e3d; --panel-soft: #123a4c; --paper: #f3f5f8; --surface: #ffffff; --line: #e1e6ee; --accent: #0ea5a3; --accent-deep: #0b7a78; --gold: #f2b134; --text: #1c2433; --muted: #6b7280; }';
+    printHTML += '* { box-sizing: border-box; margin: 0; padding: 0; }';
+    printHTML += 'html, body { height: 100%; }';
+    printHTML += 'body { font-family: "Inter", system-ui, sans-serif; background: var(--paper); color: var(--text); padding: 16px; display: flex; align-items: center; justify-content: center; min-height: 100vh; }';
+    printHTML += '.wrap { max-width: 620px; width: 100%; margin: 0 auto; }';
+    printHTML += '.header { background: var(--panel); color: white; padding: 20px 18px 16px; display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center; border-radius: 14px 14px 0 0; }';
+    printHTML += '.header .logo { font-size: 34px; }';
+    printHTML += '.header .titleWrap { display: flex; flex-direction: column; align-items: center; }';
+    printHTML += '.header .brand { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; }';
+    printHTML += '.header .pageTitle { font-family: "Space Grotesk", sans-serif; font-size: 23px; font-weight: 700; margin-top: 2px; }';
+    printHTML += '.hazardStripe { height: 6px; background: repeating-linear-gradient(-45deg, var(--accent), var(--accent) 10px, var(--ink) 10px, var(--ink) 20px); }';
+    printHTML += '.summaryBar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0; }';
+    printHTML += '.gauge { background: var(--panel-soft); border-radius: 14px; padding: 14px 8px; text-align: center; position: relative; overflow: hidden; }';
+    printHTML += '.gauge::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% -10%, rgba(14,165,163,0.35), transparent 65%); }';
+    printHTML += '.gauge .gLabel { display: block; font-size: 13.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); position: relative; font-weight: 700; }';
+    printHTML += '.gauge .gValue { display: block; font-family: "Space Grotesk", monospace; font-size: 29px; font-weight: 700; color: white; margin-top: 6px; position: relative; text-shadow: 0 0 12px rgba(242,177,52,0.35); }';
+    printHTML += '.gaugeDivider { height: 1px; background: rgba(255,255,255,0.18); margin: 8px 0 6px; position: relative; }';
+    printHTML += '.gSubLabel { display: block; font-size: 10.5px; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(255,255,255,0.65); position: relative; font-weight: 600; }';
+    printHTML += '.gSubValue { display: block; font-family: "Space Grotesk", monospace; font-size: 15px; font-weight: 700; color: var(--gold); margin-top: 2px; position: relative; }';
+    printHTML += '.itemGroup { background: var(--surface); border-radius: 14px; margin-bottom: 10px; padding: 13px 14px; border: 1px solid var(--line); }';
+    printHTML += '.groupHeader { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }';
+    printHTML += '.groupNameWrap { display: flex; align-items: center; gap: 10px; }';
+    printHTML += '.groupName { font-family: "Space Grotesk", sans-serif; font-weight: 700; color: var(--ink); font-size: 19.5px; }';
+    printHTML += '.pctBadge { background: #e6f7f6; color: var(--accent-deep); font-size: 14.5px; font-weight: 700; padding: 4px 12px; border-radius: 20px; font-family: "Space Grotesk", monospace; }';
+    printHTML += '.weightBadge { font-family: "Space Grotesk", monospace; font-weight: 700; font-size: 15.5px; color: var(--ink); background: var(--paper); border: 1.5px solid var(--line); padding: 5px 12px; border-radius: 8px; }';
+    printHTML += '.variantWrap { display: flex; flex-wrap: wrap; gap: 8px; }';
+    printHTML += '.variantChip { display: flex; align-items: center; gap: 10px; background: var(--paper); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 14px; }';
+    printHTML += '.variantChip .qtyVal { font-family: "Space Grotesk", monospace; font-weight: 700; font-size: 17px; color: var(--ink); }';
+    printHTML += '.variantChip .netVal { font-size: 13px; color: var(--muted); font-weight: 600; }';
+    printHTML += '@media print { body { background: white !important; padding: 0; align-items: flex-start; } .wrap { margin: auto; }';
+    printHTML += '.header { background: #222 !important; border: 2px solid #111; }';
+    printHTML += '.header .brand { color: #ccc !important; }';
+    printHTML += '.header .pageTitle { color: white !important; }';
+    printHTML += '.hazardStripe { background: repeating-linear-gradient(-45deg, #555, #555 10px, #222 10px, #222 20px) !important; }';
+    printHTML += '.gauge { background: #f5f5f5 !important; border: 2px solid #333; } .gauge::before { display: none; }';
+    printHTML += '.gauge .gLabel { color: #333 !important; }';
+    printHTML += '.gauge .gValue { color: #111 !important; text-shadow: none !important; }';
+    printHTML += '.gaugeDivider { background: #999 !important; }';
+    printHTML += '.gSubLabel { color: #555 !important; }';
+    printHTML += '.gSubValue { color: #111 !important; }';
+    printHTML += '.itemGroup { border: 2px solid #333 !important; background: white !important; }';
+    printHTML += '.groupName { color: #111 !important; }';
+    printHTML += '.pctBadge { background: #eee !important; color: #111 !important; border: 1.5px solid #555; }';
+    printHTML += '.weightBadge { background: #f5f5f5 !important; color: #111 !important; border-color: #555 !important; }';
+    printHTML += '.variantChip { background: #f5f5f5 !important; border-color: #555 !important; }';
+    printHTML += '.variantChip .wLabel { color: #333 !important; }';
+    printHTML += '.variantChip .qtyVal { color: #111 !important; }';
+    printHTML += '}';
+    printHTML += '</style></head><body>';
+    printHTML += '<div class="wrap">';
+    printHTML += '<div class="header"><span class="logo">🌾</span><div class="titleWrap"><span class="brand">4star Production</span><span class="pageTitle">' + res.title + '</span></div></div>';
+    printHTML += '<div class="hazardStripe"></div>';
+    printHTML += '<div class="summaryBar">';
+    printHTML += '<div class="gauge"><span class="gLabel">Grand Total</span><span class="gValue">' + res.grandTotal + '</span></div>';
+    printHTML += '<div class="gauge"><span class="gLabel">Bori</span><span class="gValue">' + res.bori + '</span></div>';
+    printHTML += '<div class="gauge"><span class="gLabel">Ratio</span><span class="gValue">' + res.ratio + '</span></div>';
+    printHTML += '<div class="gauge"><span class="gLabel">Sum %</span><span class="gValue">' + res.pctSum + '</span></div>';
+    printHTML += '</div>';
+
+    var grouped = {};
+    res.rows.forEach(function(r) {
+      if (!grouped[r.item]) grouped[r.item] = { rows: [], itemWeight: r.itemWeight || '', pct: r.pct || '' };
+      grouped[r.item].rows.push(r);
+      if (r.itemWeight) grouped[r.item].itemWeight = r.itemWeight;
+      if (r.pct) grouped[r.item].pct = r.pct;
+    });
+
+    Object.keys(grouped).forEach(function(item) {
+      var g = grouped[item];
+      printHTML += '<div class="itemGroup">';
+      printHTML += '<div class="groupHeader"><div class="groupNameWrap"><span class="groupName">' + item + '</span>';
+      if (g.pct) printHTML += '<span class="pctBadge">' + g.pct + '%</span>';
+      printHTML += '</div>';
+      if (g.itemWeight) printHTML += '<span class="weightBadge">' + g.itemWeight + ' kg</span>';
+      printHTML += '</div>';
+      printHTML += '<div class="variantWrap">';
+      g.rows.forEach(function(r) {
+        printHTML += '<div class="variantChip"><span class="wLabel">' + r.weight + 'kg</span>';
+        printHTML += '<span class="qtyVal">' + r.qty + '</span></div>';
+      });
+      printHTML += '</div></div>';
+    });
+
+    printHTML += '</div>';
+    printHTML += '</body></html>';
+    w.document.write(printHTML);
+    w.document.close();
+    setTimeout(function(){ w.print(); }, 400);
+  }
+
+function createShareImage() {
+
+  if (!window.currentReportData) return;
+
+  if (typeof html2canvas === 'undefined') {
+    alert('❌ html2canvas library load nahi ho payi. Internet check karein.');
+    return;
+  }
+
+  var res = window.currentReportData;
+
+  var btn = document.querySelector('.reportActions button:last-child');
+
+  var grouped = {};
+
+  res.rows.forEach(function(r) {
+    if (!grouped[r.item]) {
+      grouped[r.item] = {
+        rows: [],
+        itemWeight: r.itemWeight || '',
+        pct: r.pct || ''
+      };
+    }
+
+    grouped[r.item].rows.push(r);
+
+    if (r.itemWeight) grouped[r.item].itemWeight = r.itemWeight;
+    if (r.pct) grouped[r.item].pct = r.pct;
+  });
+
+  var html = '';
+
+  html += '<div class="header" style="border-radius:14px 14px 0 0;"><span class="logo">🌾</span><div class="titleWrap"><span class="brand">4star Production</span><span class="pageTitle">' + res.title + '</span></div></div>';
+
+  html += '<div class="hazardStripe"></div>';
+
+  html += '<div style="padding:16px;">';
+
+  html += '<div class="summaryBar" style="position:static;">';
+
+  html += '<div class="gauge"><span class="gLabel">Grand Total</span><span class="gValue">' + res.grandTotal + '</span></div>';
+
+  html += '<div class="gauge"><span class="gLabel">Bori</span><span class="gValue">' + res.bori + '</span></div>';
+
+  html += '<div class="gauge"><span class="gLabel">Ratio</span><span class="gValue">' + res.ratio + '</span></div>';
+
+  html += '<div class="gauge"><span class="gLabel">Sum %</span><span class="gValue">' + res.pctSum + '</span></div>';
+
+  html += '</div>';
+
+  Object.keys(grouped).forEach(function(item) {
+
+    var g = grouped[item];
+
+    html += '<div class="itemGroup">';
+
+    html += '<div class="groupHeader"><div class="groupNameWrap"><span class="groupName">' + item + '</span>';
+
+    if (g.pct)
+      html += '<span class="pctBadge">' + g.pct + '%</span>';
+
+    html += '</div>';
+
+    if (g.itemWeight)
+      html += '<span class="weightBadge">' + g.itemWeight + ' kg</span>';
+
+    html += '</div>';
+
+    html += '<div class="variantWrap">';
+
+    g.rows.forEach(function(r) {
+
+      html += '<div class="variantChip"><span class="wLabel">' + r.weight + 'kg</span>' +
+        '<span style="font-family:\'Space Grotesk\',monospace;font-weight:700;font-size:17px;color:var(--ink);">' +
+        r.qty +
+        '</span></div>';
+
+    });
+
+    html += '</div></div>';
+
+  });
+
+  html += '<div style="text-align:center;color:var(--muted);font-size:11px;margin-top:10px;">Generated by 4star Production</div>';
+
+  html += '</div>';
+
+  var card = document.createElement('div');
+
+  card.style.position = 'absolute';
+  card.style.left = '-9999px';
+  card.style.top = '0';
+  card.style.width = '620px';
+  card.style.background = 'var(--paper)';
+  card.innerHTML = html;
+
+  document.body.appendChild(card);
+
+  html2canvas(card, {
+    scale: 2,
+    backgroundColor: '#f3f5f8',
+    useCORS: true
+  }).then(function(canvas) {
+
+    document.body.removeChild(card);
+
+    canvas.toBlob(function(blob) {
+
+      cachedReportBlob = blob;
+
+      cachedReportFile = new File(
+        [blob],
+        'report.png',
+        { type: 'image/png' }
+      );
+
+      cachedReportTitle = res.title;
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '📤 WhatsApp';
+      }
+
+      console.log("Report image cached successfully.");
+
+    }, 'image/png');
+
+  }).catch(function(err) {
+
+    if (document.body.contains(card))
+      document.body.removeChild(card);
+
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '📤 WhatsApp';
+    }
+
+    alert('❌ html2canvas error: ' + err.message);
+
+  });
+
+}
+  async function shareReport() {
+
+    if (!cachedReportFile) {
+        alert("⏳ Please wait...\nReport image is still preparing.");
+        return;
+    }
+
+    if (!navigator.canShare || !navigator.canShare({ files: [cachedReportFile] })) {
+
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(cachedReportBlob);
+        link.download = "report.png";
+        link.click();
+        URL.revokeObjectURL(link.href);
+
+        setTimeout(function () {
+            window.open(
+                "https://api.whatsapp.com/send?text=" +
+                encodeURIComponent(cachedReportTitle + "\n\nPlease attach the downloaded image."),
+                "_blank"
+            );
+        }, 300);
+
+        return;
+    }
+
+    try {
+
+        await navigator.share({
+            title: cachedReportTitle,
+            files: [cachedReportFile]
+        });
+
+    } catch (err) {
+
+        if (err.name !== "AbortError") {
+            alert(err.message);
+        }
+
+    }
+
+}
+  function generateReportAction() {
+    var btn = document.getElementById('genReportBtn');
+    btn.disabled = true;
+    document.getElementById('statusMsg-reports').innerHTML = 'Generating...';
+
+    var payload = {
+      period: selectedPeriod,
+      fromDate: document.getElementById('fromDate').value,
+      toDate: document.getElementById('toDate').value,
+      includeHourly: document.getElementById('includeHourly').checked
+    };
+
+    if (selectedPeriod === 'CUSTOM' && (!payload.fromDate || !payload.toDate)) {
+      document.getElementById('statusMsg-reports').innerHTML = '❌ From aur To date dono zaroori hain.';
+      btn.disabled = false;
+      return;
+    }
+    if (selectedPeriod === 'HOURLY') {
+      var hDate = document.getElementById('hourlyDate').value;
+      var hHour = document.getElementById('hourlyHourSelect').value;
+      if (!hDate || !hHour) {
+        document.getElementById('statusMsg-reports').innerHTML = '❌ Date aur Hour dono select karein.';
+        btn.disabled = false;
+        return;
+      }
+      payload.fromDate = hDate;
+      payload.hour = hHour;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        var msg = document.getElementById('statusMsg-reports');
+        msg.className = res.success ? 'success' : 'error';
+        msg.innerHTML = (res.success ? '✅ ' : '❌ ') + res.message;
+        btn.disabled = false;
+        if (res.success) refreshReportPreview();
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('statusMsg-reports').innerHTML = '❌ Error: ' + err.message;
+        btn.disabled = false;
+      })
+      .generateReport(payload);
+  }
+
+  // ---------- ARCHIVE ----------
+  function initArchiveTab() {
+    var today = new Date();
+    document.getElementById('archiveDate').value = today.toISOString().split('T')[0];
+  }
+
+  function generateArchiveAction() {
+    var btn = document.getElementById('genArchiveBtn');
+    btn.disabled = true;
+    document.getElementById('statusMsg-archive').innerHTML = 'Generating...';
+    var iso = document.getElementById('archiveDate').value;
+    var parts = iso.split('-');
+    var dateStr = parts[2] + '-' + parts[1] + '-' + parts[0];
+    var includeHourly = document.getElementById('archiveIncludeHourly').checked;
+    google.script.run
+      .withSuccessHandler(function(res) {
+        var msg = document.getElementById('statusMsg-archive');
+        msg.className = res.success ? 'success' : 'error';
+        msg.innerHTML = (res.success ? '✅ ' : '❌ ') + res.message;
+        btn.disabled = false;
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('statusMsg-archive').innerHTML = '❌ Error: ' + err.message;
+        btn.disabled = false;
+      })
+      .generateDailyPrintArchive(dateStr, includeHourly);
+  }
+
+  // ---------- OWNER ----------
+  function verifyOwner() {
+    var pin = document.getElementById('ownerPin').value;
+    google.script.run.withSuccessHandler(function(res) {
+      if (res.success) {
+        document.getElementById('ownerGate').style.display = 'none';
+        document.getElementById('ownerContent').style.display = 'block';
+        loadPendingRequests();
+        loadFixedWage();
+      } else {
+        document.getElementById('statusMsg-owner').innerHTML = '❌ ' + res.message;
+      }
+    }).verifyOwnerPin(pin);
+  }
+
+  function loadFixedWage() {
+    google.script.run
+      .withSuccessHandler(function(wage) {
+        document.getElementById('ownerFixedWage').value = Number(wage) || 0;
+      })
+      .withFailureHandler(function() {})
+      .getPlaydariFixedWage();
+  }
+
+  function saveFixedWage() {
+    var amount = Number(document.getElementById('ownerFixedWage').value) || 0;
+    var msg = document.getElementById('fixedWageMsg');
+    var btn = document.getElementById('btnSaveFixedWage');
+    btn.disabled = true; btn.innerText = 'Saving...';
+    google.script.run
+      .withSuccessHandler(function(res) {
+        btn.disabled = false; btn.innerText = '💾 Save';
+        msg.className = res.success ? 'success' : 'error';
+        msg.innerHTML = (res.success ? '✅ ' : '❌ ') + res.message;
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false; btn.innerText = '💾 Save';
+        msg.className = 'error';
+        msg.innerHTML = '❌ ' + err.message;
+      })
+      .setPlaydariFixedWage(amount);
+  }
+
+  function loadPendingRequests() {
+    var container = document.getElementById('requestsList');
+    container.innerHTML = 'Loading...';
+    google.script.run.withSuccessHandler(function(list) {
+      if (!list || list.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:var(--muted);">Koi Pending request nahi hai.</p>';
+        return;
+      }
+      container.innerHTML = '';
+      list.forEach(function(r) {
+        var div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML =
+          '<div class="type">' + (r.type || '-') + '</div>' +
+          '<div class="detail"><b>Date:</b> ' + (r.date || '-') + ' &nbsp; <b>Hour:</b> ' + (r.hour || '-') + '</div>' +
+          '<div class="detail"><b>Item:</b> ' + (r.item || '-') + ' &nbsp; <b>Qty/Weight:</b> ' + (r.qty || '-') + '</div>' +
+          '<div class="detail"><b>By:</b> ' + (r.operator || '-') + '</div>' +
+          '<div class="detail"><b>Reason:</b> ' + (r.reason || '-') + '</div>' +
+          '<div class="actions">' +
+            '<button class="btnApprove" onclick="actOnRequest(' + r.rowNumber + ',\'approve\')">✅ Approve</button>' +
+            '<button class="btnReject" onclick="actOnRequest(' + r.rowNumber + ',\'reject\')">❌ Reject</button>' +
+          '</div>';
+        container.appendChild(div);
+      });
+    }).getPendingRequests();
+  }
+
+  function actOnRequest(rowNumber, action) {
+    var fn = action === 'approve' ? 'approveRequest' : 'rejectRequest';
+    google.script.run
+      .withSuccessHandler(function(res) { loadPendingRequests(); })
+      .withFailureHandler(function(err) { alert('Error: ' + err.message); })
+      [fn](rowNumber);
+  }
+
+  // ---------- PURCHASE (Wheat In) ----------
+  function initPurchaseTab() {
+    loadTodayPurchases();
+    loadSupplierNames();
+  }
+
+  function loadSupplierNames() {
+    google.script.run
+      .withSuccessHandler(function(names) {
+        var dl = document.getElementById('supplierList');
+        dl.innerHTML = names.map(function(n) { return '<option value="' + n + '">'; }).join('');
+      })
+      .getSupplierNames();
+  }
+
+  function calcKaatPreview() {
+    var bags = parseInt(document.getElementById('purchaseBags').value) || 0;
+    var kgs = parseInt(document.getElementById('purchaseKgs').value) || 0;
+    var preview = document.getElementById('kaatPreview');
+
+    if (bags <= 0 && kgs <= 0) { preview.style.display = 'none'; return; }
+    preview.style.display = 'block';
+
+    var kaat = Math.ceil(bags / 2);
+    var netWeight = kgs - kaat;
+    var perBag = bags > 0 ? (kgs / bags).toFixed(1) : '0';
+
+    document.getElementById('prevKaat').innerText = kaat;
+    document.getElementById('prevNetWeight').innerText = netWeight > 0 ? netWeight : 0;
+    document.getElementById('prevPerBag').innerText = perBag;
+  }
+
+  function submitPurchase() {
+    var supplier = document.getElementById('purchaseSupplier').value.trim();
+    var bags = parseInt(document.getElementById('purchaseBags').value) || 0;
+    var kgs = parseInt(document.getElementById('purchaseKgs').value) || 0;
+    var unload = document.getElementById('purchaseUnload').checked;
+    var statusEl = document.getElementById('statusMsg-purchase');
+
+    if (!supplier) { statusEl.innerHTML = '<span class="error">Supplier name daalein.</span>'; return; }
+    if (bags <= 0) { statusEl.innerHTML = '<span class="error">Bags 0 se zyada hone chahiye.</span>'; return; }
+    if (kgs <= 0) { statusEl.innerHTML = '<span class="error">Kgs 0 se zyada hone chahiye.</span>'; return; }
+
+    var btn = document.getElementById('btnSubmitPurchase');
+    btn.disabled = true;
+    btn.innerText = 'Saving...';
+    statusEl.innerHTML = '';
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        btn.disabled = false;
+        btn.innerText = '🌾 Save Purchase';
+        if (res.success) {
+          statusEl.innerHTML = '<span class="success">✅ ' + res.message + '</span>';
+          document.getElementById('purchaseSupplier').value = '';
+          document.getElementById('purchaseBags').value = '';
+          document.getElementById('purchaseKgs').value = '';
+          document.getElementById('purchaseUnload').checked = true;
+          calcKaatPreview();
+          loadTodayPurchases();
+        } else {
+          statusEl.innerHTML = '<span class="error">❌ ' + res.message + '</span>';
+        }
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false;
+        btn.innerText = '🌾 Save Purchase';
+        statusEl.innerHTML = '<span class="error">❌ ' + err.message + '</span>';
+      })
+      .submitRawMaterial({ supplier: supplier, bags: bags, kgs: kgs, unload: unload });
+  }
+
+  function loadTodayPurchases() {
+    var container = document.getElementById('purchaseHistory');
+    container.innerHTML = '<p style="text-align:center; color:var(--muted);">Loading...</p>';
+
+    google.script.run
+      .withSuccessHandler(function(entries) {
+        if (!entries || entries.length === 0) {
+          container.innerHTML = '<p style="text-align:center; color:var(--muted);">Aaj koi purchase nahi hui.</p>';
+          return;
+        }
+        // Supplier-wise group (sale ki tarah aggregate)
+        var groups = {};
+        var order = [];
+        entries.forEach(function(e) {
+          var name = e.supplier || '-';
+          if (!groups[name]) { groups[name] = { bags: 0, net: 0 }; order.push(name); }
+          groups[name].bags += Number(e.bags) || 0;
+          groups[name].net += Number(e.netWeight) || 0;
+        });
+
+        var tdStyle = 'padding:5px 8px;border:1px solid #e2e8f0;text-align:center;';
+        var thStyle = 'padding:6px 8px;background:#e2e8f0;font-weight:bold;border:1px solid #cbd5e1;text-align:center;white-space:nowrap;';
+
+        var totalBags = 0, totalNet = 0;
+        var html = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
+        html += '<tr><th style="' + thStyle + 'text-align:left;">Supplier</th><th style="' + thStyle + '">Bags</th><th style="' + thStyle + '">Net Weight</th></tr>';
+        order.forEach(function(name) {
+          var g = groups[name];
+          totalBags += g.bags;
+          totalNet += g.net;
+          var shortName = name.length > 16 ? name.substring(0, 15) + '…' : name;
+          html += '<tr><td style="' + tdStyle + 'text-align:left;font-weight:600;" title="' + name + '">' + shortName + '</td>';
+          html += '<td style="' + tdStyle + '">' + g.bags + '</td>';
+          html += '<td style="' + tdStyle + '">' + g.net + '</td></tr>';
+        });
+        html += '<tr style="background:#f1f5f9;font-weight:bold;"><td style="' + tdStyle + 'text-align:left;">Total</td>';
+        html += '<td style="' + tdStyle + '">' + totalBags + '</td><td style="' + tdStyle + 'background:#e2e8f0;">' + totalNet + '</td></tr>';
+        html += '</table></div>';
+        container.innerHTML = html;
+      })
+      .withFailureHandler(function(err) {
+        container.innerHTML = '<p style="color:red;">Error: ' + err.message + '</p>';
+      })
+      .getTodayRawMaterialLog();
+  }
+
+  // ---------- SALE (Dispatch Out) ----------
+  var saleStockCache = [];
+  var saleCustomerCache = [];
+  var saleCart = [];          // [{item, weight, bags, stockIdx}]
+  var saleCurrentItem = null; // {name, variants:[{idx,weight,closingBags,closingKgs}]}
+  var saleCurrentVariant = null;
+
+  function initSaleTab() {
+    saleCart = [];
+    renderCart();
+    loadSaleCustomers();
+    loadSaleItems();
+    showSaleStep(1);
+    loadTodaySales();
+  }
+
+  function showSaleStep(n) {
+    document.getElementById('saleStep1').style.display = n === 1 ? 'block' : 'none';
+    document.getElementById('saleStep2').style.display = n === 2 ? 'block' : 'none';
+    if (n === 2) { showItemList(); }
+  }
+
+  function goToItemPicker() {
+    var custIdx = document.getElementById('saleCustomer').value;
+    if (custIdx === '') {
+      document.getElementById('statusMsg-sale').innerHTML = '<span class="error">Customer select karein.</span>';
+      return;
+    }
+    document.getElementById('statusMsg-sale').innerHTML = '';
+    showSaleStep(2);
+  }
+
+  function goToItemPicker2() { showItemList(); }
+
+  // --- Item List ---
+  function showItemList() {
+    document.getElementById('saleItemList').style.display = 'block';
+    document.getElementById('saleVariantPicker').style.display = 'none';
+    document.getElementById('saleQtyPanel').style.display = 'none';
+    renderItemList();
+    renderCart();
+  }
+
+  function renderItemList() {
+    var container = document.getElementById('saleItemList');
+    if (!saleStockCache.length) { container.innerHTML = '<p style="color:var(--muted);text-align:center;">Loading stock...</p>'; return; }
+
+    // Group by item name
+    var groups = {};
+    saleStockCache.forEach(function(it, idx) {
+      if (!groups[it.item]) groups[it.item] = [];
+      groups[it.item].push({ idx: idx, weight: it.weight, closingBags: it.closingBags, closingKgs: it.closingKgs });
+    });
+
+    var html = '';
+    Object.keys(groups).forEach(function(name) {
+      var variants = groups[name];
+      var totalBags = variants.reduce(function(s, v) { return s + Number(v.closingBags); }, 0);
+      html += '<div onclick="selectSaleItem(\'' + name + '\')" style="background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">' +
+        '<span style="font-family:\'Space Grotesk\',sans-serif;font-weight:700;font-size:19px;">' + name + '</span>' +
+        '<span style="background:#e6f7f6;color:var(--accent-deep);font-weight:700;font-size:14px;padding:5px 12px;border-radius:20px;">' + totalBags + ' bags</span>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function selectSaleItem(name) {
+    var groups = {};
+    saleStockCache.forEach(function(it, idx) {
+      if (!groups[it.item]) groups[it.item] = [];
+      groups[it.item].push({ idx: idx, weight: it.weight, closingBags: it.closingBags, closingKgs: it.closingKgs });
+    });
+    saleCurrentItem = { name: name, variants: groups[name] };
+    document.getElementById('salePickerItemName').innerText = name;
+    renderVariantList();
+    document.getElementById('saleItemList').style.display = 'none';
+    document.getElementById('saleVariantPicker').style.display = 'block';
+    document.getElementById('saleQtyPanel').style.display = 'none';
+  }
+
+  function renderVariantList() {
+    var html = '';
+    saleCurrentItem.variants.forEach(function(v) {
+      var disabled = v.closingBags <= 0;
+      html += '<div onclick="' + (disabled ? '' : 'selectSaleVariant(' + v.idx + ')') + '" style="background:' + (disabled ? '#f1f5f9' : 'var(--surface)') + ';border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:10px;cursor:' + (disabled ? 'not-allowed' : 'pointer') + ';display:flex;justify-content:space-between;align-items:center;opacity:' + (disabled ? '0.5' : '1') + ';">' +
+        '<span style="font-weight:700;font-size:18px;">' + v.weight + ' kg</span>' +
+        '<span style="font-weight:700;font-size:15px;color:var(--muted);">📦 ' + v.closingBags + ' bags (' + v.closingKgs + ' Kg)</span>' +
+        '</div>';
+    });
+    document.getElementById('saleVariantList').innerHTML = html;
+  }
+
+  function backToItems() { showItemList(); }
+
+  function selectSaleVariant(idx) {
+    saleCurrentVariant = saleStockCache[idx];
+    saleCurrentVariant._idx = idx;
+    document.getElementById('saleQtyLabel').innerText = saleCurrentItem.name + ' — ' + saleCurrentVariant.weight + ' kg';
+    document.getElementById('saleQtyStockInfo').innerHTML = '📦 Available: <b>' + saleCurrentVariant.closingBags + ' bags</b> (' + saleCurrentVariant.closingKgs + ' Kg)';
+    document.getElementById('saleQtyInput').value = '';
+    document.getElementById('saleQtyPreview').style.display = 'none';
+    document.getElementById('saleVariantPicker').style.display = 'none';
+    document.getElementById('saleQtyPanel').style.display = 'block';
+  }
+
+  function backToVariants() {
+    document.getElementById('saleQtyPanel').style.display = 'none';
+    document.getElementById('saleVariantPicker').style.display = 'block';
+  }
+
+  function updateQtyPreview() {
+    var bags = parseInt(document.getElementById('saleQtyInput').value) || 0;
+    var prev = document.getElementById('saleQtyPreview');
+    if (bags <= 0) { prev.style.display = 'none'; return; }
+    var remaining = saleCurrentVariant.closingBags - bags;
+    prev.style.display = 'block';
+    prev.innerHTML = 'Weight: <b>' + (bags * saleCurrentVariant.weight) + ' Kg</b> &nbsp;|&nbsp; Baaki: <b style="color:' + (remaining < 0 ? 'var(--danger)' : 'var(--success)') + '">' + remaining + ' bags</b>';
+  }
+
+  function addToCart() {
+    var bags = parseInt(document.getElementById('saleQtyInput').value) || 0;
+    var statusEl = document.getElementById('statusMsg-sale');
+    if (bags <= 0) { statusEl.innerHTML = '<span class="error">Bags likhein.</span>'; return; }
+    if (bags > saleCurrentVariant.closingBags) { statusEl.innerHTML = '<span class="error">Stock kam hai! Available: ' + saleCurrentVariant.closingBags + ' bags.</span>'; return; }
+    statusEl.innerHTML = '';
+
+    // Check if same variant already in cart — update qty
+    var existing = saleCart.find(function(c) { return c.stockIdx === saleCurrentVariant._idx; });
+    if (existing) {
+      existing.bags = bags;
+    } else {
+      saleCart.push({ item: saleCurrentItem.name, weight: saleCurrentVariant.weight, bags: bags, stockIdx: saleCurrentVariant._idx });
+    }
+    showItemList();
+  }
+
+  function renderCart() {
+    var panel = document.getElementById('saleCartPanel');
+    var summary = document.getElementById('saleCartSummary');
+    if (!saleCart.length) { panel.style.display = 'none'; summary.innerText = ''; return; }
+    panel.style.display = 'block';
+    summary.innerText = '🛒 Cart mein ' + saleCart.length + ' item(s)';
+    var html = '';
+    saleCart.forEach(function(c, i) {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:8px;">' +
+        '<span style="font-weight:700;">' + c.item + ' ' + c.weight + 'kg &nbsp;×&nbsp; ' + c.bags + ' bags</span>' +
+        '<button onclick="removeFromCart(' + i + ')" style="background:var(--danger);color:white;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;">✕</button>' +
+        '</div>';
+    });
+    document.getElementById('saleCartItems').innerHTML = html;
+  }
+
+  function removeFromCart(i) { saleCart.splice(i, 1); renderCart(); }
+
+  function submitSaleEntry() {
+    if (!saleCart.length) { document.getElementById('statusMsg-sale').innerHTML = '<span class="error">Cart khali hai.</span>'; return; }
+    var custIdx = document.getElementById('saleCustomer').value;
+    var saleType = document.getElementById('saleType').value;
+    var notes = document.getElementById('saleNotes').value.trim();
+    var cust = saleCustomerCache[Number(custIdx)];
+    var statusEl = document.getElementById('statusMsg-sale');
+    var btn = document.getElementById('btnSubmitSale');
+    btn.disabled = true; btn.innerText = 'Saving...'; statusEl.innerHTML = '';
+
+    var entries = saleCart.map(function(c) {
+      return { saleType: saleType, item: c.item, weight: c.weight, bags: c.bags,
+               customerName: cust.name, notes: notes, load: cust.load, unload: cust.unload, exMill: cust.exMill };
+    });
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        btn.disabled = false; btn.innerText = '🚚 Sale Submit Karein';
+        if (res.success) {
+          statusEl.innerHTML = '<span class="success">' + res.message + '</span>';
+          saleCart = [];
+          document.getElementById('saleNotes').value = '';
+          document.getElementById('saleCustomer').value = '';
+          document.getElementById('saleCustInfo').innerText = '';
+          showSaleStep(1);
+          loadSaleItems();
+          loadTodaySales();
+        } else {
+          statusEl.innerHTML = '<span class="error">❌ ' + res.message + '</span>';
+        }
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false; btn.innerText = '🚚 Sale Submit Karein';
+        statusEl.innerHTML = '<span class="error">❌ ' + err.message + '</span>';
+      })
+      .submitSaleMulti(entries);  // ← backend function naam change hoga (نیچے دیکھیں)
+  }
+
+  function loadSaleCustomers() {
+    google.script.run
+      .withSuccessHandler(function(list) {
+        saleCustomerCache = list || [];
+        filterCustomersBySaleType();
+      })
+      .withFailureHandler(function() {})
+      .getCustomersForSale();
+  }
+
+  function filterCustomersBySaleType() {
+    var type = document.getElementById('saleType').value;
+    var sel = document.getElementById('saleCustomer');
+    sel.innerHTML = '<option value="">-- Customer Select Karein --</option>';
+    document.getElementById('saleCustInfo').innerHTML = '';
+    saleCustomerCache.forEach(function(c, i) {
+      if (c.type === type) {
+        sel.innerHTML += '<option value="' + i + '">' + c.name + '</option>';
+      }
+    });
+  }
+
+  function onSaleCustomerChange() {
+    var idx = document.getElementById('saleCustomer').value;
+    var info = document.getElementById('saleCustInfo');
+    if (idx === '') { info.innerHTML = ''; showSaleStep(1); return; }
+    var c = saleCustomerCache[Number(idx)];
+    var parts = [];
+    if (c.load) parts.push('🔼 Load');
+    if (c.unload) parts.push('🔽 Unload');
+    if (c.exMill) parts.push('🏭 Ex-Mill');
+    if (c.phone) parts.push('📞 ' + c.phone);
+    info.innerHTML = parts.join(' &nbsp; ');
+    document.getElementById('statusMsg-sale').innerHTML = '';
+    showSaleStep(2);
+  }
+
+  function loadSaleItems() {
+    google.script.run
+      .withSuccessHandler(function(list) {
+        saleStockCache = list || [];
+        renderItemList();
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('statusMsg-sale').innerHTML = '<span class="error">❌ ' + err.message + '</span>';
+      })
+      .getCurrentStockForSale();
+  }
+
+  function loadTodaySales() {
+    var container = document.getElementById('saleHistory');
+    container.innerHTML = '<p style="text-align:center;color:var(--muted);">Loading...</p>';
+    google.script.run
+      .withSuccessHandler(function(entries) {
+        if (!entries || !entries.length) { container.innerHTML = '<p style="text-align:center;color:var(--muted);">Aaj koi sale nahi hui.</p>'; return; }
+
+        // Build unique items and customers
+        var itemSet = {}, custSet = {};
+        entries.forEach(function(e) {
+          var key = e.item + ' ' + e.weight + 'kg';
+          itemSet[key] = true;
+          custSet[e.customer || '-'] = true;
+        });
+        var items = Object.keys(itemSet);
+        var custs = Object.keys(custSet);
+
+        // Build pivot data: pivot[cust][item] = bags
+        var pivot = {};
+        var custTotals = {}, itemTotals = {};
+        var grandTotal = 0;
+        custs.forEach(function(c) { pivot[c] = {}; custTotals[c] = 0; });
+        items.forEach(function(i) { itemTotals[i] = 0; });
+
+        entries.forEach(function(e) {
+          var key = e.item + ' ' + e.weight + 'kg';
+          var cust = e.customer || '-';
+          var bags = Number(e.bags) || 0;
+          pivot[cust][key] = (pivot[cust][key] || 0) + bags;
+          custTotals[cust] += bags;
+          itemTotals[key] += bags;
+          grandTotal += bags;
+        });
+
+        var tdStyle = 'padding:5px 8px;border:1px solid #e2e8f0;text-align:center;';
+        var thStyle = 'padding:6px 8px;background:#e2e8f0;font-weight:bold;border:1px solid #cbd5e1;text-align:center;white-space:nowrap;';
+
+        var html = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
+        // Header row
+        html += '<tr><th style="' + thStyle + 'text-align:left;">Customer</th>';
+        items.forEach(function(i) { html += '<th style="' + thStyle + '">' + i + '</th>'; });
+        html += '<th style="' + thStyle + 'background:#cbd5e1;">Total</th></tr>';
+
+        // Customer rows
+        custs.forEach(function(c) {
+          var shortName = c.length > 14 ? c.substring(0, 13) + '…' : c;
+          html += '<tr><td style="' + tdStyle + 'text-align:left;font-weight:600;" title="' + c + '">' + shortName + '</td>';
+          items.forEach(function(i) {
+            var v = pivot[c][i] || 0;
+            html += '<td style="' + tdStyle + '">' + (v || '') + '</td>';
+          });
+          html += '<td style="' + tdStyle + 'font-weight:700;background:#f8fafc;">' + custTotals[c] + '</td></tr>';
+        });
+
+        // Total row
+        html += '<tr style="background:#f1f5f9;font-weight:bold;"><td style="' + tdStyle + 'text-align:left;">Total</td>';
+        items.forEach(function(i) { html += '<td style="' + tdStyle + '">' + itemTotals[i] + '</td>'; });
+        html += '<td style="' + tdStyle + 'background:#e2e8f0;">' + grandTotal + '</td></tr>';
+
+        html += '</table></div>';
+        container.innerHTML = html;
+      })
+      .withFailureHandler(function(err) { container.innerHTML = '<p style="color:red;">Error: ' + err.message + '</p>'; })
+      .getTodaySales();
+}
+
+  // ---------- PLAYDARI (Labour) BILL ----------
+  var playdariPeriod = 'TODAY';
+  var playdariPartiesLoaded = false;
+
+  function initPlaydariTab() {
+    playdariPeriod = 'TODAY';
+    document.querySelectorAll('#page-playdari .presetBtn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.pperiod === 'TODAY');
+    });
+    document.getElementById('playdariCustomFields').style.display = 'none';
+    document.getElementById('playdariManualForm').style.display = 'none';
+    if (!playdariPartiesLoaded) loadPlaydariParties();
+    loadPlaydariBill();
+  }
+
+  function selectPlaydariPeriod(p) {
+    playdariPeriod = p;
+    document.querySelectorAll('#page-playdari .presetBtn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.pperiod === p);
+    });
+    var cf = document.getElementById('playdariCustomFields');
+    if (p === 'CUSTOM') {
+      cf.style.display = 'block';
+      // Custom pe dono dates aaj pe reset — user calendar se badle, phir "Get Bill" dabaye
+      var t = new Date().toISOString().split('T')[0];
+      document.getElementById('playdariFrom').value = t;
+      document.getElementById('playdariTo').value = t;
+      // auto-load NAHI — user pehle range chune, phir Get Bill button dabaye
+    } else {
+      cf.style.display = 'none';
+      loadPlaydariBill();
+    }
+  }
+
+  function loadPlaydariParties() {
+    google.script.run
+      .withSuccessHandler(function(list) {
+        var sel = document.getElementById('playdariParty');
+        sel.innerHTML = (list || ['Mills']).map(function(n) {
+          return '<option value="' + n + '">' + n + '</option>';
+        }).join('');
+        playdariPartiesLoaded = true;
+      })
+      .getPlaydariParties();
+  }
+
+  function togglePlaydariManualForm() {
+    var f = document.getElementById('playdariManualForm');
+    f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    if (f.style.display === 'block') onPlaydariKindChange();
+  }
+
+  function onPlaydariKindChange() {
+    var kind = document.getElementById('playdariKind').value;
+    // Jaam Maal + Thapai: party nahi (hamesha Mills), weight se rate auto-fill
+    var noParty = (kind === 'Jaam Maal' || kind === 'Thapai');
+    document.getElementById('playdariPartyField').style.display = noParty ? 'none' : 'block';
+    document.getElementById('playdariWeightField').style.display = noParty ? 'block' : 'none';
+    if (noParty) onPlaydariWeightChange();
+  }
+
+  // Weight-based base rate (backend playdariBaseRate ke jaisa)
+  function playdariRateForWeight(w) {
+    w = Number(w) || 0;
+    if (w <= 0) return 0;
+    if (w <= 10) return 2;
+    if (w <= 20) return 3;
+    if (w <= 70) return 7;
+    if (w <= 90) return 9;
+    return 10;
+  }
+
+  function onPlaydariWeightChange() {
+    var w = Number(document.getElementById('playdariWeight').value) || 0;
+    var rate = playdariRateForWeight(w);
+    if (rate > 0) document.getElementById('playdariRate').value = rate; // auto-fill (editable)
+    calcPlaydariManualPreview();
+  }
+
+  function calcPlaydariManualPreview() {
+    var qty = Number(document.getElementById('playdariQty').value) || 0;
+    var rate = Number(document.getElementById('playdariRate').value) || 0;
+    var el = document.getElementById('playdariManualPreview');
+    el.innerText = (qty > 0 && rate > 0) ? 'Amount: Rs ' + Math.round(qty * rate) : '';
+  }
+
+  function submitPlaydariManual() {
+    var kind = document.getElementById('playdariKind').value;
+    var party = document.getElementById('playdariParty').value;
+    var weight = Number(document.getElementById('playdariWeight').value) || 0;
+    var qty = Number(document.getElementById('playdariQty').value) || 0;
+    var rate = Number(document.getElementById('playdariRate').value) || 0;
+    var statusEl = document.getElementById('statusMsg-playdari');
+    var btn = document.getElementById('btnAddPlaydariManual');
+    btn.disabled = true; btn.innerText = 'Saving...';
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        btn.disabled = false; btn.innerText = '✅ Save Entry';
+        statusEl.className = res.success ? 'success' : 'error';
+        statusEl.innerHTML = (res.success ? '' : '❌ ') + res.message;
+        if (res.success) {
+          document.getElementById('playdariQty').value = '';
+          document.getElementById('playdariRate').value = '';
+          document.getElementById('playdariWeight').value = '';
+          document.getElementById('playdariManualPreview').innerText = '';
+          document.getElementById('playdariManualForm').style.display = 'none';
+          loadPlaydariBill();
+        }
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false; btn.innerText = '✅ Save Entry';
+        statusEl.className = 'error';
+        statusEl.innerHTML = '❌ ' + err.message;
+      })
+      .addPlaydariManual({ kind: kind, party: party, weight: weight, qty: qty, rate: rate });
+  }
+
+  function deletePlaydariManual(id) {
+    google.script.run
+      .withSuccessHandler(function(res) { loadPlaydariBill(); })
+      .withFailureHandler(function(err) { alert('Error: ' + err.message); })
+      .deletePlaydariManual(id);
+  }
+
+  function loadPlaydariBill() {
+    var container = document.getElementById('playdariBill');
+    container.innerHTML = '<p style="text-align:center;color:var(--muted);">Loading...</p>';
+    document.getElementById('playdariActions').style.display = 'none';
+    var payload = { period: playdariPeriod };
+    if (playdariPeriod === 'CUSTOM') {
+      payload.fromDate = document.getElementById('playdariFrom').value;
+      payload.toDate = document.getElementById('playdariTo').value;
+      if (!payload.fromDate || !payload.toDate) { container.innerHTML = ''; return; }
+    }
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (!res || !res.success) {
+          container.innerHTML = '<p style="color:red;">' + (res ? res.message : 'Error') + '</p>';
+          return;
+        }
+        renderPlaydariBill(res);
+      })
+      .withFailureHandler(function(err) {
+        container.innerHTML = '<p style="color:red;">Error: ' + err.message + '</p>';
+      })
+      .getPlaydariBill(payload);
+  }
+
+  function renderPlaydariBill(data) {
+    var container = document.getElementById('playdariBill');
+    playdariExAdded = 0; // naya bill — ticked Ex-Mill amounts reset
+    var th = 'padding:7px 10px;background:#1c2942;color:white;font-weight:700;border:1px solid #334;text-align:center;white-space:nowrap;font-size:12.5px;';
+    var td = 'padding:6px 9px;border:1px solid #e2e8f0;text-align:center;font-size:13px;';
+    var tdL = td + 'text-align:left;';
+    var tfootTd = td + 'font-weight:700;background:#f1f5f9;';
+
+    var html = '';
+    var dateLabel = data.single ? data.fromDate : (data.fromDate + ' — ' + data.toDate);
+    html += '<div style="font-family:\'Space Grotesk\',sans-serif;font-weight:700;font-size:15px;color:var(--ink);margin-bottom:12px;">📅 ' + dateLabel + '</div>';
+
+    // ---- SALES section (item-wise, no Type/Events columns) ----
+    if (data.sales && data.sales.length) {
+      html += '<div style="font-weight:700;font-size:13.5px;color:var(--accent-deep);margin:10px 0 6px;">🚚 Sale Labour</div>';
+      html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">';
+      // Del column sirf tab jab kisi row mein manualId ho (Mills manual entry)
+      var saleHasDel = data.sales.some(function(r) { return r.manualId; });
+      html += '<tr>'
+        + '<th style="' + th + 'text-align:left;">Item</th>'
+        + '<th style="' + th + '">Bags Load</th>'
+        + '<th style="' + th + '">Bags Unload</th>'
+        + '<th style="' + th + '">Rate</th>'
+        + '<th style="' + th + '">Amount</th>'
+        + (saleHasDel ? '<th style="' + th + '">Del</th>' : '') + '</tr>';
+      var saleTot = 0;
+      data.sales.forEach(function(r) {
+        html += '<tr>'
+          + '<td style="' + tdL + 'font-weight:600;">' + r.item + (r.weight ? ' ' + r.weight + 'kg' : '') + '</td>'
+          + '<td style="' + td + '">' + (r.bagsLoad || 0) + '</td>'
+          + '<td style="' + td + '">' + (r.bagsUnload || 0) + '</td>'
+          + '<td style="' + td + '">' + r.rateLabel + '</td>'
+          + '<td style="' + td + 'font-weight:700;">Rs ' + r.amount + '</td>'
+          + (saleHasDel ? '<td style="' + td + '">' + (r.manualId ? '<button onclick="deletePlaydariManual(' + r.manualId + ')" style="background:var(--danger);color:white;border:none;border-radius:6px;padding:4px 9px;font-size:12px;cursor:pointer;">✕</button>' : '') + '</td>' : '')
+          + '</tr>';
+        saleTot += r.amount;
+      });
+      html += '<tr><td colspan="4" style="' + tfootTd + 'text-align:right;">Sale Total</td>'
+        + '<td style="' + tfootTd + 'background:#e2e8f0;">Rs ' + saleTot + '</td>'
+        + (saleHasDel ? '<td style="' + tfootTd + '"></td>' : '') + '</tr>';
+      html += '</table></div>';
+    }
+
+    // ---- WHEAT / GANDAM section (dynamic rate; non-Mills manual yahin merge hoti hai) ----
+    if (data.wheat && data.wheat.length) {
+      var wheatHasDel = data.wheat.some(function(r) { return r.manualId; });
+      html += '<div style="font-weight:700;font-size:13.5px;color:var(--accent-deep);margin:14px 0 6px;">🌾 Gandam Unload Labour</div>';
+      html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">';
+      html += '<tr>'
+        + '<th style="' + th + 'text-align:left;">Supplier</th>'
+        + '<th style="' + th + '">Bags</th>'
+        + '<th style="' + th + '">Rate</th>'
+        + '<th style="' + th + '">Amount</th>'
+        + (wheatHasDel ? '<th style="' + th + '">Del</th>' : '') + '</tr>';
+      var wheatTot = 0;
+      data.wheat.forEach(function(r) {
+        html += '<tr>'
+          + '<td style="' + tdL + 'font-weight:600;">' + r.supplier + '</td>'
+          + '<td style="' + td + '">' + r.bags + '</td>'
+          + '<td style="' + td + '">' + (r.rateLabel || (r.rate + ' / bag')) + '</td>'
+          + '<td style="' + td + 'font-weight:700;">Rs ' + r.amount + '</td>'
+          + (wheatHasDel ? '<td style="' + td + '">' + (r.manualId ? '<button onclick="deletePlaydariManual(' + r.manualId + ')" style="background:var(--danger);color:white;border:none;border-radius:6px;padding:4px 9px;font-size:12px;cursor:pointer;">✕</button>' : '') + '</td>' : '')
+          + '</tr>';
+        wheatTot += r.amount;
+      });
+      html += '<tr><td colspan="3" style="' + tfootTd + 'text-align:right;">Gandam Total</td>'
+        + '<td style="' + tfootTd + 'background:#e2e8f0;">Rs ' + wheatTot + '</td>'
+        + (wheatHasDel ? '<td style="' + tfootTd + '"></td>' : '') + '</tr>';
+      html += '</table></div>';
+    }
+
+    // ---- GRAND TOTAL (KPK included nahi hota) ----
+    var hasData = (data.sales && data.sales.length) || (data.kpk && data.kpk.length) || (data.wheat && data.wheat.length);
+    if (!hasData) {
+      html += '<p style="text-align:center;color:var(--muted);margin-top:20px;">Is date ka koi record nahi.</p>';
+      container.innerHTML = html;
+      return;
+    }
+    // base grand total (Sale + Gandam) — checkbox se Ex-Mill rows isme add hongi
+    playdariBaseGrand = Number(data.grandTotal) || 0;
+    playdariFixedWage = Number(data.fixedWage) || 0; // owner-set fixed daily wage (0 = off)
+    playdariBackendKami = Number(data.kami) || 0;    // per-day Kami (Sunday skip, Ex-Mill shamil) — backend se
+    playdariKamiBreakdown = data.kamiBreakdown || []; // har din ka {date,bill,kami,sunday}
+
+    // Fixed daily wage — agar total isse kam hai to "Kami" difference add hoga
+    // Amounts onPlaydariRecalc() live bharta hai (checkbox toggle pe bhi).
+    html += '<div style="margin-top:14px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-size:13.5px;">'
+      + '<span style="color:var(--muted);font-weight:600;">Bill Subtotal</span>'
+      + '<span id="playdariSubtotal" style="font-family:\'Space Grotesk\',monospace;font-weight:700;color:var(--ink);">Rs ' + playdariBaseGrand + '</span>'
+      + '</div>';
+    html += '<div id="playdariKamiRow" style="margin-top:6px;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:10px 16px;display:none;justify-content:space-between;align-items:center;font-size:13.5px;">'
+      + '<span id="playdariKamiLabel" style="color:#92400e;font-weight:700;cursor:pointer;" onclick="togglePlaydariKamiDetail()">➕ Kami (Fixed Wage) ▾</span>'
+      + '<span id="playdariKamiAmount" style="font-family:\'Space Grotesk\',monospace;font-weight:700;color:#92400e;">Rs 0</span>'
+      + '</div>';
+    html += '<div id="playdariKamiDetail" style="display:none;margin-top:4px;background:#fffdf5;border:1px solid #fde68a;border-radius:10px;padding:8px 12px;font-size:11.5px;color:#78350f;"></div>';
+    html += '<div style="margin-top:6px;background:var(--panel);color:white;border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">'
+      + '<span style="font-family:\'Space Grotesk\',sans-serif;font-weight:700;font-size:16px;">💰 Grand Total</span>'
+      + '<span id="playdariGrandTotal" style="font-family:\'Space Grotesk\',monospace;font-weight:700;font-size:22px;color:var(--gold);">Rs ' + playdariBaseGrand + '</span>'
+      + '</div>';
+
+    // ---- Ex-Mill Labour (KPK + Bran ek hi table mein) — grand total se alag ----
+    // Har row ke aage checkbox: tick karo to us row ka amount Grand Total mein add.
+    var exRows = [];
+    (data.kpk || []).forEach(function(r) {
+      exRows.push({ party: r.customer, detail: r.totalKgs + ' kg', rate: 'Ex-Mill 150 / 1000kg', amount: r.amount });
+    });
+    (data.exMillBran || []).forEach(function(r) {
+      exRows.push({ party: r.customer, detail: r.bags + ' bags', rate: '7.5 / bag (Bran)', amount: r.amount });
+    });
+
+    if (exRows.length) {
+      html += '<div style="font-weight:700;font-size:13.5px;color:var(--accent-deep);margin:16px 0 6px;">🏭 Labour (Ex-Mill) — grand total se alag</div>';
+      html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">';
+      html += '<tr>'
+        + '<th style="' + th + '">✓</th>'
+        + '<th style="' + th + 'text-align:left;">Party</th>'
+        + '<th style="' + th + '">Detail</th>'
+        + '<th style="' + th + '">Rate</th>'
+        + '<th style="' + th + '">Amount</th></tr>';
+      var exTot = 0;
+      exRows.forEach(function(r, i) {
+        html += '<tr>'
+          + '<td style="' + td + '"><input type="checkbox" style="width:20px;height:20px;accent-color:var(--accent);cursor:pointer;" onchange="onPlaydariExToggle(this,' + r.amount + ')"></td>'
+          + '<td style="' + tdL + 'font-weight:600;">' + r.party + '</td>'
+          + '<td style="' + td + '">' + r.detail + '</td>'
+          + '<td style="' + td + '">' + r.rate + '</td>'
+          + '<td style="' + td + 'font-weight:700;">Rs ' + r.amount + '</td>'
+          + '</tr>';
+        exTot += r.amount;
+      });
+      html += '<tr><td colspan="4" style="' + tfootTd + 'text-align:right;">Ex-Mill Total</td>'
+        + '<td id="playdariExTotal" style="' + tfootTd + 'background:#e2e8f0;">Rs ' + exTot + '</td></tr>';
+      html += '</table></div>';
+      playdariExBaseTotal = exTot; // tick karne pe isme se minus hoga
+      html += '<div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Tick karein to us row ka amount Grand Total mein chala jayega (Ex-Mill Total se minus).</div>';
+    }
+
+    container.innerHTML = html;
+    onPlaydariRecalc(); // Kami + Grand Total pehli dafa set karo
+    document.getElementById('playdariActions').style.display = 'flex';
+    buildPlaydariShareImage(); // WhatsApp image pehle se bana lo (share user-tap pe turant ho)
+  }
+
+  // Ex-Mill row checkbox toggle — Grand Total live update
+  var playdariBaseGrand = 0;
+  var playdariExAdded = 0;
+  var playdariExBaseTotal = 0;
+  var playdariFixedWage = 0;
+  var playdariBackendKami = 0; // backend se aayi per-day Kami (Sunday skip, Ex-Mill shamil)
+  var playdariKamiBreakdown = []; // har din ka {date,bill,kami,sunday}
+
+  // Kami breakdown detail toggle (kaunsa din, kitna bill, kitni Kami)
+  function togglePlaydariKamiDetail() {
+    var d = document.getElementById('playdariKamiDetail');
+    if (!d) return;
+    if (d.style.display === 'none' || !d.style.display) {
+      var rows = playdariKamiBreakdown.map(function(x) {
+        var right = x.sunday
+          ? '<span style="color:#0b7a78;font-weight:700;">Sunday — koi Kami</span>'
+          : (x.kami > 0 ? 'Kami Rs ' + x.kami : '<span style="color:#0b7a78;">pura — koi Kami</span>');
+        return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #fde68a;">'
+          + '<span>' + x.date + ' &nbsp;(bill Rs ' + x.bill + ')</span>'
+          + '<span>' + right + '</span></div>';
+      }).join('');
+      d.innerHTML = rows + '<div style="text-align:right;font-weight:700;margin-top:5px;">Total Kami: Rs ' + playdariBackendKami
+        + ' &nbsp;|&nbsp; Fixed Wage: Rs ' + playdariFixedWage + '</div>';
+      d.style.display = 'block';
+    } else {
+      d.style.display = 'none';
+    }
+  }
+
+  // Grand Total + Kami + Ex-Mill Total sab ek jagah recalc — render aur toggle dono se call hota hai
+  // Kami backend se aati hai (per-day, Sunday-excluded, Ex-Mill already shamil) — client sirf
+  // ticked Ex-Mill ko Grand Total mein jorta hai.
+  function onPlaydariRecalc() {
+    var subtotal = playdariBaseGrand + playdariExAdded; // base + jo Ex-Mill rows tick hui hain
+    var kami = playdariBackendKami;
+    var grand = subtotal + kami;
+
+    var subEl = document.getElementById('playdariSubtotal');
+    if (subEl) subEl.innerText = 'Rs ' + subtotal;
+
+    var kamiRow = document.getElementById('playdariKamiRow');
+    var kamiAmt = document.getElementById('playdariKamiAmount');
+    var kamiLbl = document.getElementById('playdariKamiLabel');
+    if (kamiRow) {
+      if (kami > 0) {
+        kamiRow.style.display = 'flex';
+        if (kamiAmt) kamiAmt.innerText = 'Rs ' + kami;
+        if (kamiLbl) kamiLbl.innerText = '➕ Kami (Fixed Wage Rs ' + playdariFixedWage + ') ▾';
+      } else {
+        kamiRow.style.display = 'none';
+        var kd = document.getElementById('playdariKamiDetail');
+        if (kd) kd.style.display = 'none';
+      }
+    }
+
+    var el = document.getElementById('playdariGrandTotal');
+    if (el) el.innerText = 'Rs ' + grand;
+
+    var exEl = document.getElementById('playdariExTotal');
+    if (exEl) exEl.innerText = 'Rs ' + (playdariExBaseTotal - playdariExAdded);
+  }
+
+  function onPlaydariExToggle(cb, amount) {
+    var row = cb.closest('tr');
+    if (cb.checked) {
+      playdariExAdded += amount;
+      if (row) row.style.background = '#ecfdf5'; // halka green = included
+    } else {
+      playdariExAdded -= amount;
+      if (row) row.style.background = '';
+    }
+    onPlaydariRecalc();
+    buildPlaydariShareImage(); // grand total badla — share image dobara bana lo
+  }
+
+  // ---------- PLAYDARI BILL — PRINT & WHATSAPP ----------
+  function playdariBillLabel() {
+    var p = playdariPeriod;
+    if (p === 'CUSTOM') {
+      var f = document.getElementById('playdariFrom').value;
+      var t = document.getElementById('playdariTo').value;
+      return 'Playdari Bill (' + f + ' — ' + t + ')';
+    }
+    return 'Playdari Bill — Today';
+  }
+
+  function printPlaydariBill() {
+    var bill = document.getElementById('playdariBill');
+    if (!bill || !bill.innerHTML.trim()) return;
+    var title = playdariBillLabel();
+    var w = window.open('', '_blank');
+    var printHTML = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title>';
+    printHTML += '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">';
+    printHTML += '<style>';
+    printHTML += ':root { --ink: #10192b; --panel: #0b2e3d; --paper: #f3f5f8; --surface: #ffffff; --line: #e1e6ee; --accent: #0ea5a3; --accent-deep: #0b7a78; --gold: #f2b134; --text: #1c2433; --muted: #6b7280; }';
+    printHTML += '* { box-sizing: border-box; margin: 0; padding: 0; }';
+    printHTML += 'body { font-family: "Inter", system-ui, sans-serif; background: var(--paper); color: var(--text); padding: 16px; }';
+    printHTML += '.wrap { max-width: 620px; width: 100%; margin: 0 auto; }';
+    printHTML += '.header { background: var(--panel); color: white; padding: 20px 18px 16px; display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center; border-radius: 14px 14px 0 0; }';
+    printHTML += '.header .logo { font-size: 34px; }';
+    printHTML += '.header .titleWrap { display: flex; flex-direction: column; align-items: center; }';
+    printHTML += '.header .brand { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; }';
+    printHTML += '.header .pageTitle { font-family: "Space Grotesk", sans-serif; font-size: 23px; font-weight: 700; margin-top: 2px; }';
+    printHTML += '.hazardStripe { height: 6px; background: repeating-linear-gradient(-45deg, var(--accent), var(--accent) 10px, var(--ink) 10px, var(--ink) 20px); margin-bottom: 16px; }';
+    printHTML += 'table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }';
+    printHTML += '.billBody { padding: 0 2px; }';
+    printHTML += '@media print { body { background: white !important; padding: 0; } .header { background: #222 !important; } .header .brand { color: #ccc !important; } .header .pageTitle { color: white !important; } .hazardStripe { background: repeating-linear-gradient(-45deg, #555, #555 10px, #222 10px, #222 20px) !important; } input[type=checkbox]{ display:none; } }';
+    printHTML += '</style></head><body>';
+    printHTML += '<div class="wrap">';
+    printHTML += '<div class="header"><span class="logo">🌾</span><div class="titleWrap"><span class="brand">4star Production</span><span class="pageTitle">' + title + '</span></div></div>';
+    printHTML += '<div class="hazardStripe"></div>';
+    printHTML += '<div class="billBody">' + bill.innerHTML + '</div>';
+    printHTML += '</div></body></html>';
+    w.document.write(printHTML);
+    w.document.close();
+    setTimeout(function(){ w.print(); }, 400);
+  }
+
+  var playdariShareFile = null;
+  var playdariShareBlob = null;
+
+  // Bill image background mein bana kar cache karo (Reports ke createShareImage jaisa).
+  // Isse WhatsApp button dabate hi user-gesture ke saath turant share hota hai.
+  function buildPlaydariShareImage() {
+    var bill = document.getElementById('playdariBill');
+    if (!bill || !bill.innerHTML.trim()) return;
+    if (typeof html2canvas === 'undefined') return;
+
+    var title = playdariBillLabel();
+    var btn = document.querySelector('#playdariActions button:last-child');
+    playdariShareFile = null; // purani image invalid
+    if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Ready...'; }
+
+    var card = document.createElement('div');
+    card.style.position = 'absolute';
+    card.style.left = '-9999px';
+    card.style.top = '0';
+    card.style.width = '620px';
+    card.style.background = 'var(--paper)';
+    var html = '';
+    html += '<div class="header" style="border-radius:14px 14px 0 0;"><span class="logo">🌾</span><div class="titleWrap"><span class="brand">4star Production</span><span class="pageTitle">' + title + '</span></div></div>';
+    html += '<div class="hazardStripe"></div>';
+    html += '<div style="padding:16px;">' + bill.innerHTML + '</div>';
+    html += '<div style="text-align:center;color:var(--muted);font-size:11px;padding:0 0 12px;">Generated by 4star Production</div>';
+    card.innerHTML = html;
+    // interactive checkboxes image mein na dikhein
+    card.querySelectorAll('input[type=checkbox]').forEach(function(c){ c.remove(); });
+    document.body.appendChild(card);
+
+    html2canvas(card, { scale: 2, backgroundColor: '#f3f5f8', useCORS: true }).then(function(canvas) {
+      document.body.removeChild(card);
+      canvas.toBlob(function(blob) {
+        playdariShareBlob = blob;
+        playdariShareFile = new File([blob], 'playdari-bill.png', { type: 'image/png' });
+        if (btn) { btn.disabled = false; btn.innerHTML = '📤 WhatsApp'; }
+      }, 'image/png');
+    }).catch(function(err) {
+      if (document.body.contains(card)) document.body.removeChild(card);
+      if (btn) { btn.disabled = false; btn.innerHTML = '📤 WhatsApp'; }
+      console.log('playdari html2canvas error: ' + err.message);
+    });
+  }
+
+  async function sharePlaydariBill() {
+    if (!playdariShareFile) {
+      alert('⏳ Please wait...\nBill image is still preparing.');
+      return;
+    }
+    var title = playdariBillLabel();
+
+    if (!navigator.canShare || !navigator.canShare({ files: [playdariShareFile] })) {
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(playdariShareBlob);
+      link.download = 'playdari-bill.png';
+      link.click();
+      URL.revokeObjectURL(link.href);
+      setTimeout(function () {
+        window.open('https://api.whatsapp.com/send?text=' +
+          encodeURIComponent(title + '\n\nPlease attach the downloaded image.'), '_blank');
+      }, 300);
+      return;
+    }
+
+    try {
+      await navigator.share({ title: title, files: [playdariShareFile] });
+    } catch (err) {
+      if (err.name !== 'AbortError') alert(err.message);
+    }
+  }
+
+  // ==================== VOICE CONTROL ====================
+  (function() {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return; // unsupported browser — mic button stays hidden
+    document.getElementById('voiceFab').style.display = 'flex';
+
+    var recog = null;
+    var voiceLang = 'ur-PK';   // default: Urdu; user toggle se badlega
+    var micGranted = false;    // permission mila?
+    var listening = false;
+    var restarting = false;    // onend controlled restart flag
+    var wizardState = 'IDLE';  // IDLE | AWAIT_QTY | CONFIRM
+    var wizardItem = null;     // { name, variants: [{idx,weight}], vIdx }
+    var itemQueue = [];        // baaqi items ka naam queue (auto flow)
+    var pendingQty = null;
+
+    // ---- UI helpers ----
+    function vPanel(show) { document.getElementById('voicePanel').classList.toggle('show', show); }
+    function vPrompt(txt) { document.getElementById('voicePrompt').textContent = txt; }
+    function vTranscript(txt) { document.getElementById('voiceTranscript').textContent = txt; }
+    function vConfirmShow(n) {
+      pendingQty = n;
+      document.getElementById('voiceConfirmInput').value = n;
+      document.getElementById('voiceConfirm').style.display = 'block';
+    }
+    function vConfirmHide() { document.getElementById('voiceConfirm').style.display = 'none'; }
+
+    // ---- Language toggle (called from HTML) ----
+    window.setVoiceLang = function(lang) {
+      voiceLang = lang;
+      document.querySelectorAll('.vLangBtn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.lang === lang);
+      });
+      if (recog) recog.lang = lang;
+    };
+
+    // ---- Speech synthesis ----
+    function vSpeak(txt) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(txt);
+      u.lang = voiceLang;
+      u.rate = 0.95;
+      window.speechSynthesis.speak(u);
+    }
+
+    // ---- Number parser (digits + English + Roman Urdu/Punjabi words) ----
+    var WORD_NUMS = {
+      'ek':1,'ik':1,'do':2,'teen':3,'tin':3,'char':4,'chaar':4,'paanch':5,'panj':5,'chhe':6,'che':6,'saat':7,'sat':7,'aath':8,'ath':8,'nau':9,
+      'das':10,'gyarah':11,'barah':12,'terah':13,'chaudah':14,'pandrah':15,
+      'solah':16,'satrah':17,'atharah':18,'unees':19,'bees':20,'vee':20,
+      'tees':30,'chaalees':40,'pachaas':50,'pachas':50,'saath':60,'sattar':70,'assi':80,'nabbe':90,
+      'ek sau':100,'sau':100,'so':100,'do sau':200,'teen sau':300,'char sau':400,'paanch sau':500,
+      'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,'eight':8,'nine':9,
+      'ten':10,'eleven':11,'twelve':12,'thirteen':13,'fourteen':14,'fifteen':15,
+      'sixteen':16,'seventeen':17,'eighteen':18,'nineteen':19,'twenty':20,
+      'thirty':30,'forty':40,'fifty':50,'sixty':60,'seventy':70,'eighty':80,'ninety':90,
+      'hundred':100,'two hundred':200,'three hundred':300
+    };
+    function parseNumber(txt) {
+      txt = txt.toLowerCase().trim();
+      var m = txt.match(/\d+/);
+      if (m) return parseInt(m[0], 10);
+      var keys = Object.keys(WORD_NUMS).sort(function(a,b){return b.length-a.length;});
+      for (var i=0;i<keys.length;i++) {
+        if (txt.indexOf(keys[i]) !== -1) return WORD_NUMS[keys[i]];
+      }
+      return null;
+    }
+
+    // ---- Item helpers (DOM se) ----
+    function getItemVariants() {
+      var map = {}, order = [];
+      document.querySelectorAll('#itemsContainer input.qtyInputSmall').forEach(function(el) {
+        var name = el.dataset.item;
+        if (!map[name]) { map[name] = []; order.push(name); }
+        map[name].push({ idx: el.id.replace('qty_',''), weight: Number(el.dataset.weight) });
+      });
+      return { map: map, order: order };
+    }
+    function matchItem(txt) {
+      txt = txt.toLowerCase();
+      var gv = getItemVariants();
+      var best = null;
+      gv.order.forEach(function(name) {
+        if (txt.indexOf(name.toLowerCase()) !== -1) best = name;
+      });
+      return best ? { name: best, variants: gv.map[best], vIdx: 0 } : null;
+    }
+
+    function activeTab() {
+      var btn = document.querySelector('.navbtn.active');
+      return btn ? btn.dataset.page : '';
+    }
+
+    // ---- Navigation keyword map ----
+    var NAV_MAP = [
+      { keys:['save hour','save','savehour','ghanta','ghante','hour'], id:'savehour', title:'Save Hour' },
+      { keys:['request','requests','darkhwast'], id:'requests', title:'Requests' },
+      { keys:['purchase','gandam','khareed','wheat'], id:'purchase', title:'Wheat Purchase' },
+      { keys:['sale','dispatch','bikri'], id:'sale', title:'Sale / Dispatch' },
+      { keys:['playdari','pleydari','pledari','bill'], id:'playdari', title:'Playdari Bill' },
+      { keys:['report','reports','riport'], id:'reports', title:'Reports' },
+      { keys:['archive','rozana'], id:'archive', title:'Daily Archive' },
+      { keys:['owner','malik','dashboard'], id:'owner', title:'Owner Dashboard' }
+    ];
+
+    // ---- Command handler ----
+    function handleVoice(txt) {
+      var t = txt.toLowerCase().trim();
+      if (!t) return;
+      vTranscript('"' + txt + '"');
+
+      // stop
+      if (/khatam|band karo|band kro|^band$|stop|rok/.test(t)) {
+        wizardStop(); vPrompt('🎤 Voice band. Dobara bolne ke liye phir se bolein.'); vSpeak('Theek hai'); return;
+      }
+
+      // CONFIRM state — haan/nahi ya naya number
+      if (wizardState === 'CONFIRM') {
+        if (/haan|^ha$|han|yes|theek|sahi|ok|thik/.test(t)) { doConfirmYes(); return; }
+        if (/nahi|^na$|no|cancel|galat/.test(t)) { doConfirmNo(); return; }
+        var cn = parseNumber(t);
+        if (cn !== null) { document.getElementById('voiceConfirmInput').value = cn; pendingQty = cn; vTranscript('Naya: ' + cn + ' — "haan" bolein'); return; }
+      }
+
+      // wizard chal raha ho — pehle item name jump check, phir number
+      if (wizardState === 'AWAIT_QTY') {
+        var jump = matchItem(t);
+        if (jump) { wizardSetItem(jump); return; }   // beech mein naam bola → us item par jump
+        var n = parseNumber(t);
+        if (n !== null) { wizardGotQty(n); return; }
+        if (/skip|chhodo|chodo|next|agla|agli/.test(t)) { wizardItem && wizardItem.vIdx++; wizardAskVariant(); return; }
+      }
+
+      // navigation
+      for (var i=0;i<NAV_MAP.length;i++) {
+        for (var j=0;j<NAV_MAP[i].keys.length;j++) {
+          if (t.indexOf(NAV_MAP[i].keys[j]) !== -1) {
+            showPage(NAV_MAP[i].id, NAV_MAP[i].title);
+            vPrompt('📂 ' + NAV_MAP[i].title);
+            if (NAV_MAP[i].id === 'savehour') { setTimeout(wizardStart, 400); }
+            else { wizardStop(); }
+            return;
+          }
+        }
+      }
+
+      // print / whatsapp
+      if (/print|chapao|chhapo/.test(t)) {
+        var tab = activeTab();
+        if (tab === 'reports') printReport(); else if (tab === 'playdari') printPlaydariBill();
+        vPrompt('🖨️ Print...'); return;
+      }
+      if (/whatsapp|watsap|share|bhejo|send/.test(t)) {
+        var tab2 = activeTab();
+        if (tab2 === 'reports') shareReport(); else if (tab2 === 'playdari') sharePlaydariBill();
+        vPrompt('📤 Share...'); return;
+      }
+
+      // Save Hour tab par item name se wizard start
+      if (activeTab() === 'savehour') {
+        var it = matchItem(t);
+        if (it) { wizardSetItem(it); return; }
+      }
+
+      vPrompt('❓ Samajh nahi aaya — dobara bolein');
+    }
+
+    // ---- Wizard (auto ask) ----
+    function wizardStart() {
+      var gv = getItemVariants();
+      if (!gv.order.length) { vPrompt('Items load nahi hue.'); return; }
+      itemQueue = gv.order.slice(); // saari items queue mein
+      nextItemFromQueue();
+    }
+    function nextItemFromQueue() {
+      if (!itemQueue.length) {
+        wizardState = 'IDLE'; wizardItem = null;
+        vPrompt('✅ Saare items ho gaye. "Save" bol kar navigate karein.');
+        vSpeak('Sab ho gaya');
+        return;
+      }
+      var name = itemQueue.shift();
+      var gv = getItemVariants();
+      wizardSetItem({ name: name, variants: gv.map[name], vIdx: 0 }, true);
+    }
+    function wizardSetItem(item, fromQueue) {
+      // agar manually item pick hui (queue se nahi) to usay queue se hata do
+      if (!fromQueue) { itemQueue = itemQueue.filter(function(n){ return n !== item.name; }); }
+      wizardItem = item;
+      wizardAskVariant();
+    }
+    function wizardAskVariant() {
+      if (!wizardItem || wizardItem.vIdx >= wizardItem.variants.length) {
+        // is item ke variants khatam → agli item
+        nextItemFromQueue();
+        return;
+      }
+      var v = wizardItem.variants[wizardItem.vIdx];
+      var msg = wizardItem.name + ' — ' + v.weight + ' kg kitney?';
+      vPrompt('🎤 ' + msg);
+      vSpeak(msg);
+      wizardState = 'AWAIT_QTY';
+    }
+    function wizardGotQty(n) {
+      wizardState = 'CONFIRM';
+      vPrompt(wizardItem.name + ' ' + wizardItem.variants[wizardItem.vIdx].weight + 'kg — confirm karein:');
+      vConfirmShow(n);
+      vSpeak(n + ', theek hai?');
+    }
+    function wizardStop() {
+      wizardState = 'IDLE'; wizardItem = null; itemQueue = []; pendingQty = null;
+      vConfirmHide();
+    }
+
+    function doConfirmYes() {
+      var n = parseInt(document.getElementById('voiceConfirmInput').value, 10);
+      if (isNaN(n)) n = pendingQty;
+      if (wizardItem && wizardItem.vIdx < wizardItem.variants.length) {
+        var v = wizardItem.variants[wizardItem.vIdx];
+        var el = document.getElementById('qty_' + v.idx);
+        if (el) { el.value = n; onQtyChange(); }
+        wizardItem.vIdx++;
+      }
+      vConfirmHide();
+      vTranscript('✅ ' + n + ' save');
+      wizardAskVariant();
+    }
+    function doConfirmNo() {
+      vConfirmHide();
+      vTranscript('❌ Cancel — dobara bolein');
+      wizardState = 'AWAIT_QTY';
+      wizardAskVariant();
+    }
+    // HTML buttons
+    window.vcConfirmYes = doConfirmYes;
+    window.vcConfirmNo = doConfirmNo;
+
+    // ---- Recognition build + events ----
+    function buildRecognizer() {
+      var r = new SR();
+      r.lang = voiceLang;
+      r.interimResults = true;
+      r.continuous = false;   // mobile pe continuous flaky — false + controlled restart
+      r.maxAlternatives = 1;
+
+      r.onresult = function(e) {
+        var interim = '', final = '';
+        for (var i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) final += e.results[i][0].transcript;
+          else interim += e.results[i][0].transcript;
+        }
+        if (interim) vTranscript('...' + interim);
+        if (final) handleVoice(final.trim());
+      };
+      r.onerror = function(e) {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          micGranted = false; listening = false; restarting = false;
+          vPrompt('🎤 Microphone allow karein (browser settings se).');
+          setFabIdle();
+        } else if (e.error === 'no-speech') {
+          // koi baat nahi — onend restart kar dega
+        } else if (e.error === 'network') {
+          vPrompt('❌ Internet check karein');
+        } else if (e.error === 'aborted') {
+          // manual stop — ignore
+        } else {
+          vPrompt('⚠️ ' + e.error);
+        }
+      };
+      r.onend = function() {
+        // sirf tab restart karo jab user ne on rakha ho (controlled)
+        if (listening && !restarting) {
+          restarting = true;
+          try { r.start(); } catch (err) {}
+          restarting = false;
+        }
+      };
+      return r;
+    }
+
+    function setFabListening() {
+      var fab = document.getElementById('voiceFab');
+      fab.classList.add('listening'); fab.textContent = '🔴';
+    }
+    function setFabIdle() {
+      var fab = document.getElementById('voiceFab');
+      fab.classList.remove('listening'); fab.textContent = '🎤';
+    }
+
+    function beginListening() {
+      if (!recog) recog = buildRecognizer();
+      recog.lang = voiceLang;
+      listening = true;
+      setFabListening();
+      vPanel(true);
+      try { recog.start(); } catch (err) {}
+      // Save Hour tab par khud wizard start
+      if (activeTab() === 'savehour') { setTimeout(wizardStart, 500); }
+      else { vPrompt('🎤 Bolein: Reports, Playdari, Print...'); }
+    }
+
+    function stopListening() {
+      listening = false; restarting = false;
+      if (recog) { try { recog.stop(); } catch (err) {} }
+      setFabIdle();
+      vPanel(false);
+      wizardStop();
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+
+    // ---- Toggle: seedha SpeechRecognition start karo — browser khud permission maangega ----
+    window.toggleVoice = function() {
+      if (listening) { stopListening(); return; }
+      micGranted = true;
+      beginListening();
+    };
+  })();
+  // ==================== END VOICE CONTROL ====================
+
+</script>
 </body>
 </html>

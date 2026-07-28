@@ -4,7 +4,6 @@
     <script>
 /* ============================================================
  * GOOGLE SCRIPT RUN BRIDGE POLYFILL
- * Allows Google Apps Script functions to run natively on GitHub Pages
  * ============================================================ */
 (function() {
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCAzNfLln35J4feJDIg9R14j_iY_VwMJnvNWz6iN6dglW9eXcb537F2iozrjaWV3fQ/exec';
@@ -37,15 +36,22 @@
             args: args
           })
         })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("Network response was not ok: " + res.statusText);
+          }
+          return res.json();
+        })
         .then(data => {
           if (data.status === "success") {
             successHandler(data.result);
           } else {
+            console.error("Script Execution Error:", data.message);
             failureHandler(new Error(data.message));
           }
         })
         .catch(err => {
+          console.error("Fetch Exception:", err);
           failureHandler(err);
         });
 

@@ -1,14 +1,175 @@
 <!DOCTYPE html>
 <html>
 <head>
-    
+  
 <base target="_top">
-<meta charset="UTF-8">
+<meta charset="UTF-8"> <!-- ✅ Emojis aur Text Thik Karne Ke Liye -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0b2e3d">
+
+<script>
+(function () {
+
+    const API_URL = 'https://app.4starmills.org/proxy.php';
+
+    window.google = window.google || {};
+    window.google.script = window.google.script || {};
+
+    function createRunner() {
+
+        let successHandler = function () {};
+        let failureHandler = function (error) {
+            console.error("GAS Error:", error);
+        };
+
+        const runner = new Proxy({}, {
+
+            get: function (target, functionName) {
+
+                // .withSuccessHandler()
+                if (functionName === "withSuccessHandler") {
+
+                    return function (fn) {
+                        successHandler = fn;
+                        return runner;
+                    };
+
+                }
+
+                // .withFailureHandler()
+                if (functionName === "withFailureHandler") {
+
+                    return function (fn) {
+                        failureHandler = fn;
+                        return runner;
+                    };
+
+                }
+
+                // Actual Google Apps Script function
+                return function (...args) {
+
+                    // IMPORTANT: handlers ko ISI waqt freeze karo.
+                    // Warna page-load pe jab kayi calls saath chalti hain,
+                    // baad wali call in shared variables ko overwrite kar deti
+                    // hai aur pehli call ka result galat handler ko chala jata
+                    // hai (ya kabhi chalta hi nahi -> "loading..." atak jata hai).
+                    const onSuccess = successHandler;
+                    const onFailure = failureHandler;
+
+                    console.log(
+                        "Calling GAS function:",
+                        functionName,
+                        args
+                    );
+
+                    const payload = {
+                        functionName: functionName,
+                        args: args
+                    };
+
+                    fetch(API_URL, {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify(payload)
+
+                    })
+
+                    .then(async response => {
+
+                        const text = await response.text();
+
+                        console.log(
+                            "Proxy response:",
+                            text
+                        );
+
+                        let data;
+
+                        try {
+
+                            data = JSON.parse(text);
+
+                        } catch (e) {
+
+                            throw new Error(
+                                "Server returned invalid JSON: " +
+                                text.substring(0, 500)
+                            );
+
+                        }
+
+                        if (!response.ok) {
+
+                            throw new Error(
+                                data.message ||
+                                "HTTP Error " + response.status
+                            );
+
+                        }
+
+                        return data;
+
+                    })
+
+                    .then(data => {
+
+                        if (data.status === "success") {
+
+                            console.log(
+                                "GAS function success:",
+                                functionName,
+                                data.result
+                            );
+
+                            onSuccess(data.result);
+
+                        } else {
+
+                            onFailure(
+                                new Error(
+                                    data.message ||
+                                    "Google Apps Script error"
+                                )
+                            );
+
+                        }
+
+                    })
+
+                    .catch(error => {
+
+                        console.error(
+                            "API Error:",
+                            functionName,
+                            error
+                        );
+
+                        onFailure(error);
+
+                    });
+
+                };
+
+            }
+
+        });
+
+        return runner;
+    }
+
+    window.google.script.run = createRunner();
+
+})();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
 
